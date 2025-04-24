@@ -1,0 +1,53 @@
+[
+    {
+        "timestamp": "2025-04-24T00:11:20.317600",
+        "source_info": "Datos Cargados y Preprocesados",
+        "rows_analyzed": 2522183,
+        "model_threshold": 0.7,
+        "metrics": {
+            "accuracy": 0.9346379703613893,
+            "confusion_matrix": [
+                [
+                    2046766,
+                    49539
+                ],
+                [
+                    115316,
+                    310562
+                ]
+            ],
+            "report": {
+                "Benign": {
+                    "precision": 0.9466643725816135,
+                    "recall": 0.9763684196717558,
+                    "f1-score": 0.9612869849546318,
+                    "support": 2096305.0
+                },
+                "Attack": {
+                    "precision": 0.8624302626207647,
+                    "recall": 0.729227619177323,
+                    "f1-score": 0.7902552103809389,
+                    "support": 425878.0
+                },
+                "accuracy": 0.9346379703613893,
+                "macro avg": {
+                    "precision": 0.9045473176011891,
+                    "recall": 0.8527980194245395,
+                    "f1-score": 0.8757710976677854,
+                    "support": 2522183.0
+                },
+                "weighted avg": {
+                    "precision": 0.9324411959596529,
+                    "recall": 0.9346379703613893,
+                    "f1-score": 0.9324077679858809,
+                    "support": 2522183.0
+                }
+            }
+        },
+        "detection_summary": {
+            "Attack": 360101,
+            "Benign": 2162082,
+            "Unknown": 0
+        }
+    }
+]

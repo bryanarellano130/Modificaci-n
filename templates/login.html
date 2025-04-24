@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% from 'macros.html' import render_field %} {# Importar macro si lo usas #}
+
+{% block title %}Iniciar Sesión{% endblock %}
+
+{% block content %}
+    <h1>Iniciar Sesión</h1>
+    <div class="action-card" style="max-width: 500px; margin: 2rem auto;">
+        <form method="POST" action="{{ url_for('login') }}">
+            {{ form.hidden_tag() }} {# CSRF Token #}
+
+            <div class="form-group">
+                {{ form.username.label }}
+                {{ form.username(class="form-control", placeholder="Nombre de usuario") }}
+                {% if form.username.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.username.errors %}{{ error }}{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.password.label }}
+                {{ form.password(class="form-control", placeholder="Contraseña") }}
+                 {% if form.password.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.password.errors %}{{ error }}{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group form-check">
+                 {{ form.remember_me(class="form-check-input") }}
+                 {{ form.remember_me.label(class="form-check-label") }}
+            </div>
+
+            <div class="form-group">
+                {{ form.submit(class="button") }}
+            </div>
+        </form>
+        <hr>
+        <p>¿No tienes cuenta? <a href="{{ url_for('register') }}">Regístrate aquí</a></p>
+    </div>
+
+    {# Estilos básicos para errores de formulario (añadir a style.css es mejor) #}
+    <style>
+        .invalid-feedback { color: #dc3545; font-size: 0.85em; margin-top: 0.25rem; }
+        .form-control:invalid, input.form-control.is-invalid { border-color: #dc3545; }
+        .form-check { display: flex; align-items: center; gap: 0.5rem;}
+        .form-check-input { width: auto; margin-top: -0.2rem;}
+        .form-check-label { margin-bottom: 0; }
+    </style>
+{% endblock %}

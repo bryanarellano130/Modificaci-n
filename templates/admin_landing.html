@@ -1,0 +1,79 @@
+{# Asumiendo que tienes un contenedor o sección para las acciones administrativas #}
+<div class="card mb-3">
+    <div class="card-header">
+        Acciones del Modelo
+    </div>
+    <div class="card-body">
+        <h5 class="card-title">Reentrenar Modelo GLM</h5>
+        <p class="card-text">
+            Inicia el proceso de reentrenamiento del modelo de detección.
+            Esto cargará los datos preprocesados, realizará el split, muestreo estratificado, ajustará el modelo y guardará los componentes necesarios.
+            Puede tardar varios minutos.
+        </p>
+        {# Formulario para enviar la acción 'retrain' a la ruta /admin/action #}
+        <form action="{{ url_for('admin_actions') }}" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres iniciar el reentrenamiento del modelo? Esto puede tardar.');">
+            <input type="hidden" name="action" value="retrain">
+            <button type="submit" class="btn btn-warning">Iniciar Reentrenamiento</button>
+        </form>
+        <hr> {# Separador opcional #}
+
+        <h5 class="card-title">Actualizar Umbral GLM</h5>
+        <p class="card-text">
+            Ajusta el umbral de probabilidad para clasificar un flujo como ataque.
+            Valor actual: {{ system_config.get('glm_threshold', detector.threshold) | default('N/A', true) }}
+        </p>
+        {# Formulario para actualizar el umbral #}
+         <form action="{{ url_for('admin_actions') }}" method="POST" class="form-inline">
+              <input type="hidden" name="action" value="update_threshold">
+              <div class="form-group mx-sm-3 mb-2">
+                   <label for="glm_threshold" class="sr-only">Umbral</label>
+                   <input type="number" class="form-control form-control-sm" id="glm_threshold" name="glm_threshold" step="0.01" min="0" max="1" value="{{ system_config.get('glm_threshold', detector.threshold) | default(0.7, true) }}" required>
+              </div>
+              <button type="submit" class="btn btn-primary btn-sm mb-2">Actualizar Umbral</button>
+         </form>
+
+
+        {# Aquí puedes añadir más formularios para otras acciones admin si las tienes #}
+        {# Por ejemplo, un formulario para actualizar la configuración de alertas si no está ya en otro lugar #}
+         {% comment %}
+         <h5 class="card-title mt-3">Configuración de Alertas</h5>
+         <p class="card-text">
+              Ajusta la severidad mínima para generar alertas y la notificación por email.
+         </p>
+         <form action="{{ url_for('admin_actions') }}" method="POST">
+              <input type="hidden" name="action" value="update_alert_config">
+              <div class="form-group">
+                   <label for="alert_severity_threshold">Severidad Mínima:</label>
+                   <select class="form-control form-control-sm" id="alert_severity_threshold" name="alert_severity_threshold">
+                        {# Asume que alert_manager.config tiene 'severity_threshold' #}
+                        <option value="Baja" {% if alert_manager.config.get('severity_threshold') == 'Baja' %}selected{% endif %}>Baja</option>
+                        <option value="Media" {% if alert_manager.config.get('severity_threshold') == 'Media' %}selected{% endif %}>Media</option>
+                        <option value="Alta" {% if alert_manager.config.get('severity_threshold') == 'Alta' %}selected{% endif %}>Alta</option>
+                   </select>
+              </div>
+              <div class="form-check mt-2">
+                   {# Asume que alert_manager.config tiene 'notify_email' #}
+                   <input type="checkbox" class="form-check-input" id="notify_email" name="notify_email" {% if alert_manager.config.get('notify_email') %}checked{% endif %}>
+                   <label class="form-check-label" for="notify_email">Notificar por Email</label>
+              </div>
+              <button type="submit" class="btn btn-primary btn-sm mt-3">Actualizar Config. Alertas</button>
+         </form>
+         {% endcomment %}
+
+    </div>
+</div>
+
+{# Asegúrate de que tu plantilla base (base.html) incluya los mensajes flash #}
+{# Ejemplo en base.html: #}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}

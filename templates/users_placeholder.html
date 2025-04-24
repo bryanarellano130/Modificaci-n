@@ -1,0 +1,18 @@
+{# templates/users_placeholder.html #}
+{% extends 'base.html' %}
+
+{% block title %}Gestión Usuarios (Placeholder){% endblock %}
+
+{% block content %}
+    <h1>Gestión de Usuarios y Roles</h1>
+
+    {# El mensaje flash se mostrará automáticamente por el bloque en base.html #}
+    {# Mantenemos el mensaje estático aquí también para claridad #}
+    <div class="alert alert-info" role="alert">
+      Esta funcionalidad está en desarrollo y aún no está disponible.
+    </div>
+
+    <p>
+      <a href="{{ url_for('admin_landing') }}" class="button button-secondary">Volver a Administración</a>
+    </p>
+{% endblock %}

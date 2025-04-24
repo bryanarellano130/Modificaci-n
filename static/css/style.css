@@ -1,0 +1,310 @@
+/* static/css/style.css */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    margin: 0;
+    background-color: #f4f7f6;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.container {
+    width: 90%;
+    max-width: 1400px; /* Un poco más ancho para dashboards */
+    margin: 0 auto;
+}
+
+/* Navbar */
+.navbar {
+    background-color: #2c3e50;
+    color: #ecf0f1;
+    padding: 0.8rem 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: sticky; /* Navbar fija */
+    top: 0;
+    z-index: 1000;
+}
+.navbar .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.navbar-brand {
+    font-size: 1.4rem; /* Ajustado */
+    font-weight: bold;
+    color: #ecf0f1;
+    text-decoration: none;
+}
+.navbar-brand:hover {
+    color: #bdc3c7;
+}
+.navbar-links a {
+    color: #ecf0f1;
+    text-decoration: none;
+    margin-left: 1.2rem; /* Ajustado */
+    padding: 0.4rem 0;
+    border-bottom: 2px solid transparent;
+    transition: color 0.3s ease, border-color 0.3s ease;
+}
+.navbar-links a:hover, .navbar-links a.active { /* Añadir clase 'active' en la plantilla si quieres */
+    color: #ffffff;
+    border-bottom-color: #3498db;
+}
+
+/* Main Content Area */
+.content-area {
+    flex: 1; /* Empuja el footer hacia abajo */
+    padding: 1.5rem 0; /* Reducido padding */
+}
+
+h1, h2, h3 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    font-weight: 600; /* Un poco más grueso */
+}
+h1 { font-size: 2rem; }
+h2 { font-size: 1.5rem; margin-top: 1.5rem; }
+h3 { font-size: 1.2rem; margin-top: 1.2rem;}
+
+/* Forms */
+form {
+    background-color: #fff;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem; /* Reducido */
+}
+.form-group {
+    margin-bottom: 1rem;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600; /* Más grueso */
+    font-size: 0.9rem;
+}
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="file"],
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.7rem 0.9rem; /* Ajustado padding */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 0.95rem;
+}
+.form-group input[type="file"] {
+    padding: 0.4rem; /* Diferente padding para file input */
+}
+.form-group select[multiple] {
+    min-height: 80px; /* Altura mínima para selects múltiples */
+}
+.form-group textarea {
+    min-height: 100px;
+    font-family: monospace; /* Mejor para logs */
+    font-size: 0.85rem;
+}
+.form-group input[type="checkbox"] {
+    margin-right: 0.5rem;
+    vertical-align: middle;
+}
+.form-group small {
+    font-size: 0.85rem;
+    color: #555;
+}
+
+/* Buttons */
+.button {
+    display: inline-block; /* Para que respeten padding */
+    background-color: #3498db;
+    color: white !important; /* Forzar color blanco */
+    padding: 0.6rem 1.2rem; /* Ajustado */
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: none; /* Para enlaces estilizados como botones */
+    text-align: center;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+.form-group button { /* Para botones dentro de forms */
+     font-size: 0.95rem;
+}
+.button:hover {
+    background-color: #2980b9;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+.button-secondary {
+     background-color: #7f8c8d;
+}
+.button-secondary:hover {
+     background-color: #6c7a7b;
+}
+.button-sm { /* Botón más pequeño */
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+}
+button:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Tables */
+.table-container {
+    max-height: 450px; /* Altura máxima por defecto */
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+}
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+}
+.data-table th, .data-table td {
+    border-bottom: 1px solid #ddd; /* Solo borde inferior */
+    border-right: 1px solid #eee; /* Borde derecho más sutil */
+    padding: 0.7rem; /* Ajustado */
+    text-align: left;
+    font-size: 0.9rem;
+    vertical-align: top; /* Alinear arriba */
+}
+.data-table td:last-child, .data-table th:last-child {
+     border-right: none; /* Sin borde en la última columna */
+}
+.data-table thead th {
+    background-color: #ecf0f1;
+    color: #2c3e50;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 10; /* Encima del contenido al hacer scroll */
+}
+.data-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+.data-table tbody tr:hover {
+    background-color: #eef5f9; /* Azul muy claro */
+}
+
+/* Alerts & Flash Messages */
+.flash-messages {
+    margin-bottom: 1rem; /* Reducido */
+}
+.alert {
+    padding: 0.8rem 1rem; /* Ajustado */
+    margin-bottom: 1rem;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    font-size: 0.95rem;
+}
+.alert-success { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
+.alert-error { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+.alert-warning { background-color: #fff3cd; border-color: #ffeeba; color: #856404; }
+.alert-info { background-color: #d1ecf1; border-color: #bee5eb; color: #0c5460; }
+
+/* Dashboard Metrics & Cards */
+.dashboard-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Más pequeñas */
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.metric-card, .action-card {
+    background-color: #fff;
+    padding: 1.2rem; /* Reducido */
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 1rem; /* Añadido margen inferior a action-card */
+}
+.metric-card h2, .action-card h2 {
+    margin-top: 0;
+    margin-bottom: 0.8rem;
+    font-size: 1.1rem; /* Reducido */
+    color: #34495e;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.6rem;
+}
+.metric-card .metric-value {
+    font-size: 1.8rem; /* Reducido */
+    font-weight: bold;
+    color: #3498db;
+    margin-bottom: 0.8rem;
+}
+.metric-card a {
+    text-decoration: none;
+    color: #3498db;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+.status-ok { color: #27ae60 !important; } /* Verde más oscuro */
+.status-sim { color: #f39c12 !important; }
+
+/* Layouts for Specific Pages */
+.data-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+.data-preview {
+    display: grid;
+    grid-template-columns: 1fr; /* Una columna por defecto */
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+@media (min-width: 992px) { /* Dos columnas en pantallas grandes */
+    .data-preview {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+.preview-section h3 {
+    font-size: 1.1rem;
+    color: #34495e;
+    margin-bottom: 0.8rem;
+}
+
+.admin-sections {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* Ajustado */
+    gap: 1.5rem;
+}
+
+/* Alert Options */
+.alert-options {
+    margin-bottom: 1rem;
+    display: flex;
+    flex-wrap: wrap; /* Para que quepan en móvil */
+    gap: 0.5rem;
+}
+.reviewed-alert td {
+    color: #777;
+    /* font-style: italic; Puede ser difícil de leer */
+    opacity: 0.7; /* Atenuado */
+}
+/* Severity Highlighting (más sutiles o específicos) */
+.severity-crítica td { border-left: 4px solid #c0392b; } /* Borde izquierdo rojo */
+.severity-alta td { border-left: 4px solid #e74c3c; }
+.severity-media td { border-left: 4px solid #f39c12; }
+.severity-baja td { border-left: 4px solid #bdc3c7; } /* Gris para baja */
+
+
+/* Footer */
+footer {
+    background-color: #ecf0f1;
+    color: #7f8c8d;
+    padding: 1rem 0;
+    margin-top: auto; /* Empuja al fondo si el contenido es corto */
+    text-align: center;
+    font-size: 0.85rem;
+    border-top: 1px solid #ddd;
+}

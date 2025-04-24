@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Alertas y Reglas{% endblock %}
+
+{% block content %}
+<h1>🚨 Alertas y Reglas</h1>
+<p>Monitorea alertas generadas por el sistema de detección.</p>
+
+<div class="alert-options">
+    <a href="{{ url_for('alerts', show_all='false') }}" class="button {% if not show_all %}button-secondary{% endif %}">Mostrar Activas</a>
+    <a href="{{ url_for('alerts', show_all='true') }}" class="button {% if show_all %}button-secondary{% endif %}">Mostrar Todas</a>
+
+    <form method="POST" action="{{ url_for('alerts') }}" style="margin: 0; display: inline-block; margin-left: 1rem;"> {# Añadido margen izquierdo para separar visualmente #}
+        {# Campo oculto o usar name/value en el botón para identificar la acción #}
+        <button type="submit" name="action" value="delete_all" class="button button-danger"
+                onclick="return confirm('¿Estás MUY seguro de que deseas borrar TODAS las alertas? Esta acción NO se puede deshacer.');">
+            Borrar Todas las Alertas
+        </button>
+    </form>
+    {# Botón para configurar alertas podría ir aquí o en Admin #}
+    {# <a href="{{ url_for('configure_alerts_page') }}" class="button">Configurar</a> #}
+</div>
+
+
+<h2>Monitor de Alertas {% if not show_all %}(Activas - No Revisadas){% else %}(Todas){% endif %}</h2>
+
+{% if alerts %}
+    <div class="table-container" style="max-height: 600px;"> {# Ajusta altura si es necesario #}
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Timestamp</th>
+                    <th>Tipo</th>
+                    <th>Severidad</th>
+                    <th>Detalles</th>
+                    <th>Revisada</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alert in alerts %} {# Ya vienen ordenadas desde Flask #}
+                <tr class="severity-{{ alert.severity | lower }} {% if alert.reviewed %}reviewed-alert{% endif %}">
+                    <td>{{ alert.id }}</td>
+                    <td>{{ alert.timestamp | format_datetime }}</td>
+                    <td>{{ alert.type }}</td>
+                    <td>{{ alert.severity }}</td>
+                    <td>{{ alert.details }}</td>
+                    <td>{{ 'Sí' if alert.reviewed else 'No' }}</td>
+                    <td>
+                        {% if not alert.reviewed %}
+                        {# Este formulario ahora solo debe marcar como revisada #}
+                        <form method="POST" action="{{ url_for('alerts') }}" style="margin: 0;">
+                            <input type="hidden" name="alert_id" value="{{ alert.id }}">
+                            {# Podrías añadir 'action'='mark_reviewed' si quieres ser más explícito #}
+                            {# <input type="hidden" name="action" value="mark_reviewed"> #}
+                            <button type="submit" class="button button-sm button-secondary">Marcar Revisada</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <p>No hay alertas {{ 'activas' if not show_all else '' }} para mostrar.</p>
+{% endif %}
+
+{# ... (resto de tu código HTML, incluyendo la sección de Reglas Placeholder) ... #}
+
+{% endblock %}
+
+{% block extra_js %}
+<style>
+/* Añade esto a tu style.css o aquí si prefieres */
+.alert-options {
+    margin-bottom: 1.5rem;
+    display: flex;
+    gap: 0.5rem; /* Espacio entre botones */
+    align-items: center; /* Alinea verticalmente los elementos si tienen alturas diferentes */
+}
+.button-sm { /* Botón más pequeño para la tabla */
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+}
+.reviewed-alert td { /* Estilo para alertas revisadas */
+    color: #777;
+    font-style: italic;
+}
+.severity-crítica { background-color: #e74c3c; color: white; font-weight: bold; } /* Más rojo */
+.severity-alta { background-color: #f8d7da; color: #721c24; }
+.severity-media { background-color: #fff3cd; color: #856404; }
+/* Baja severidad podría no tener estilo o uno muy sutil */
+
+/* === ESTILO PARA EL BOTÓN DE PELIGRO (BORRAR) === */
+.button-danger {
+    background-color: #dc3545; /* Bootstrap danger red */
+    color: white;
+    border-color: #dc3545;
+}
+.button-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+/* === FIN ESTILO PELIGRO === */
+</style>
+<script>
+    console.log("Alerts JS loaded");
+    // No se necesita JS adicional si usas onclick="return confirm(...)"
+</script>
+{% endblock %}

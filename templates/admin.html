@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}Administración{% endblock %}
+
+{% block content %}
+<h1>⚙️ Administración</h1>
+<p>Configura el sistema y gestiona tareas administrativas.</p>
+
+<div class="admin-sections">
+{# Tarjeta para Configuración del Sistema (Modelo) #}
+ <div class="action-card">
+<h2>Configuración del Sistema</h2>
+<form method="POST" action="{{ url_for('admin_actions') }}">
+<input type="hidden" name="action" value="update_threshold">
+<div class="form-group">
+<label for="glm_threshold">Umbral de Decisión Modelo GLM (Probabilidad para clasificar
+                    como 'Ataque'):</label>
+<input type="number" step="0.01" min="0.05" max="0.95" id="glm_threshold"
+                    name="glm_threshold" value="{{ system_config.glm_threshold | default(0.7) }}">
+ <small>Valor actual: {{ system_config.glm_threshold | default(0.7) }}</small>
+</div>
+{# Añade aquí más configuraciones del sistema si las implementas #}
+<div class="form-group">
+<button type="submit" class="button">Guardar Config. Modelo</button>
+</div>
+</form>
+</div>
+
+{# Tarjeta para Configuración de Alertas #}
+<div class="action-card">
+<h2>Configuración de Alertas</h2>
+<form method="POST" action="{{ url_for('admin_actions') }}">
+<input type="hidden" name="action" value="update_alert_config">
+<div class="form-group">
+<label for="alert_severity_threshold">Generar alerta solo si severidad es >=:</label>
+<select id="alert_severity_threshold" name="alert_severity_threshold">
+{% for level in alert_severity_levels %} {# Necesita alert_severity_levels desde
+                    app.py #}
+ <option value="{{ level }}" {% if level==alert_config.severity_threshold
+                        %}selected{% endif %}>
+{{ level }}
+ </option>
+{% endfor %}
+</select>
+<small>Valor actual: {{ alert_config.severity_threshold | default('Media') }}</small>
+</div>
+<div class="form-group">
+<label>
+<input type="checkbox" name="notify_email" value="true" {% if
+                        alert_config.notify_email %}checked{% endif %}>
+Notificar por Email (Simulado)
+</label>
+<small>Estado actual: {{ 'Activado' if alert_config.notify_email else 'Desactivado'
+                    }}</small>
+</div>
+<div class="form-group">
+<button type="submit" class="button">Guardar Config. Alertas</button>
+</div>
+</form>
+</div>
+
+{# Tarjeta para Reentrenamiento #}
+<div class="action-card">
+<h2>Reentrenamiento del Modelo</h2>
+<p>Esta funcionalidad requiere una implementación más compleja.</p>
+<form method="POST" action="{{ url_for('admin_actions') }}">
+<input type="hidden" name="action" value="retrain">
+<div class="form-group">
+{# Añadida clase para confirmación JS y mensaje personalizado #}
+<button type="submit" class="button button-secondary delete-action-button"
+data-confirm-message="¿Estás seguro de iniciar el reentrenamiento (simulado)?">
+Iniciar Reentrenamiento (Simulado)
+</button>
+</div>
+</form>
+</div>
+
+{# Tarjeta para Gestión de Usuarios --- CAMBIO --- #}
+<div class="action-card">
+<h2>Gestión de Usuarios y Roles </h2> {# Removido "(Placeholder)" del título #}
+<p></p> {# Removido mensaje placeholder #}
+{# Reemplazar botón deshabilitado con un enlace a la ruta placeholder #}
+{# CORREGIDO: Apuntar a list_users en lugar de manage_users_placeholder #}
+<a href="{{ url_for('list_users') }}" class="button button-secondary">Gestionar Usuarios</a>
+</div>
+
+    {# Tarjeta para Registros del Sistema #}
+    <div class="action-card">
+        <h2>Registros del Sistema (Simulados)</h2>
+        {# Usar la variable system_logs pasada desde Flask #}
+        <textarea readonly
+            style="width: 100%; height: 300px; background-color: #f0f0f0; border: 1px solid #ccc; font-family: monospace; font-size: 0.8rem; white-space: pre;">{{ system_logs }}</textarea>
+    </div>
+</div>
+
+{% endblock %}
+{% block extra_js %}
+<style>
+    .admin-sections {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
+        /* Mejor ajuste responsivo */
+        gap: 1.5rem;
+    }
+
+    textarea[readonly] {
+        cursor: default;
+        color: #333;
+    }
+</style>
+{# Cargar main.js para que funcione la confirmación del botón de reentrenamiento #}
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script> console.log("Admin JS loaded"); </script>
+{% endblock %}

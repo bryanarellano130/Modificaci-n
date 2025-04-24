@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h1>📈 Panel Principal / Dashboard</h1>
+<p>Vista general del estado del sistema.</p>
+
+<div class="dashboard-metrics">
+    <div class="metric-card">
+        <h2>Alertas Activas</h2>
+        <p class="metric-value">{{ active_alerts_count }}</p>
+        <a href="{{ url_for('alerts') }}">Ver Alertas</a>
+    </div>
+    <div class="metric-card">
+        <h2>Última Detección</h2>
+        {% if last_detection %}
+            <p><strong>Fecha:</strong> {{ last_detection.timestamp | format_datetime }}</p> {# Necesitas un filtro Jinja2 para formatear fecha #}
+            <p><strong>Accuracy:</strong>
+                {% if last_detection.metrics.accuracy %}
+                    {{ "%.2f%%" % (last_detection.metrics.accuracy * 100) }}
+                {% else %}
+                    N/A
+                {% endif %}
+            </p>
+        {% else %}
+            <p>N/A</p>
+        {% endif %}
+         <a href="{{ url_for('detect') }}">Ir a Detección</a>
+    </div>
+    <div class="metric-card">
+        <h2>Estado del Modelo</h2>
+        <p class="metric-value {% if 'Real' in model_status %}status-ok{% else %}status-sim{% endif %}">{{ model_status }}</p>
+         <a href="{{ url_for('admin_landing') }}">Configuración</a>
+    </div>
+</div>
+
+<h2>Actividad Reciente (Últimas 5 Alertas)</h2>
+{% if recent_alerts %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Timestamp</th>
+                <th>Tipo</th>
+                <th>Severidad</th>
+                <th>Revisada</th>
+                <th>Detalles</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for alert in recent_alerts | reverse %} {# Mostrar más recientes primero #}
+            <tr class="severity-{{ alert.severity | lower }}">
+                <td>{{ alert.id }}</td>
+                <td>{{ alert.timestamp | format_datetime }}</td> {# Necesitas filtro #}
+                <td>{{ alert.type }}</td>
+                <td>{{ alert.severity }}</td>
+                <td>{{ 'Sí' if alert.reviewed else 'No' }}</td>
+                <td>{{ alert.details }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No hay alertas recientes.</p>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+{# <script> console.log("Dashboard JS loaded"); </script> #}
+{% endblock %}

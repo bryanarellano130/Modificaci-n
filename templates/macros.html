@@ -1,0 +1,16 @@
+{# templates/macros.html - Para renderizar campos de WTForms #}
+{% macro render_field(field, label_visible=true) %}
+  <div class="form-group {% if field.errors %}has-error{% endif %}">
+    {% if label_visible %}
+      {{ field.label(class='form-label') }}
+    {% endif %}
+    {{ field(class='form-control', **kwargs) }}
+    {% if field.errors %}
+      <ul class="errors">
+      {% for error in field.errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+{% endmacro %}

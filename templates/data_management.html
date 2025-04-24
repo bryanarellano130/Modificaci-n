@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestión de Datos{% endblock %}
+
+{% block content %}
+<h1>📊 Gestión de Datos</h1>
+<p>Carga y preprocesa los datasets de tráfico de red.</p>
+
+<div class="data-actions">
+    <div class="action-card">
+        <h2>1. Cargar Datos (CSV)</h2>
+        <form method="POST" action="{{ url_for('manage_data') }}" enctype="multipart/form-data">
+            {# Es importante añadir un input oculto para saber qué acción realizar #}
+            <input type="hidden" name="action" value="upload">
+            <div class="form-group">
+                <label for="file">Selecciona un archivo CSV:</label>
+                <input type="file" id="file" name="file" accept=".csv" required>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="button">Cargar Archivo</button>
+            </div>
+        </form>
+    </div>
+
+    {# Solo mostrar si hay datos cargados disponibles para procesar #}
+    <div class="action-card">
+        <h2>2. Preprocesar Datos</h2>
+        {# Verifica si DataManager tiene datos cargados listos para procesar #}
+        {# Nota: Necesitaríamos pasar una variable booleana desde Flask para saber esto, ej: 'can_preprocess' #}
+        {# Simplificación: Asumimos que si hay vista previa cargada, se puede procesar #}
+        {% if loaded_head_html and '<p>No hay datos' not in loaded_head_html %}
+            {% if not processed_head_html or '<p>No hay datos' in processed_head_html %}
+                <p>Archivo cargado listo para preprocesar.</p>
+                <form method="POST" action="{{ url_for('manage_data') }}">
+                     <input type="hidden" name="action" value="preprocess">
+                     <div class="form-group">
+                        <button type="submit" class="button button-secondary">Iniciar Preprocesamiento</button>
+                     </div>
+                </form>
+            {% else %}
+                 <p>Los datos ya han sido preprocesados. Puedes ver una vista previa abajo.</p>
+                 <p><small>(Para preprocesar un nuevo archivo, primero cárgalo usando el formulario de arriba).</small></p>
+            {% endif %}
+        {% else %}
+             <p>Primero carga un archivo CSV usando el formulario anterior.</p>
+        {% endif %}
+    </div>
+
+</div>
+
+
+<h2>Vista Previa de Datos</h2>
+
+<div class="data-preview">
+    <div class="preview-section">
+        <h3>Datos Cargados (Originales)</h3>
+        <div class="table-container">
+            {# | safe es necesario porque la variable contiene HTML generado por pandas #}
+            {{ loaded_head_html | safe if loaded_head_html else "<p>Aún no se han cargado datos.</p>" }}
+        </div>
+         {# Aquí podrías añadir un botón/enlace para ver estadísticas descriptivas si lo implementas #}
+         {# Ejemplo: <a href="{{ url_for('descriptive_stats', source='loaded') }}">Ver Estadísticas</a> #}
+    </div>
+
+    <div class="preview-section">
+        <h3>Datos Procesados</h3>
+         <div class="table-container">
+            {# | safe es necesario porque la variable contiene HTML generado por pandas #}
+            {{ processed_head_html | safe if processed_head_html else "<p>Los datos aún no han sido preprocesados o no se cargó ningún archivo.</p>" }}
+        </div>
+        {# Aquí podrías añadir un botón/enlace para ver estadísticas descriptivas si lo implementas #}
+        {# Ejemplo: <a href="{{ url_for('descriptive_stats', source='processed') }}">Ver Estadísticas</a> #}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    console.log("Data Management JS loaded");
+</script>
+{% endblock %}

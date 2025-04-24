@@ -1,0 +1,155 @@
+{# templates/user_form.html #}
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %} {# Usamos la variable title pasada desde Flask #}
+
+{% block content %}
+<h1>{{ title }}</h1> {# Muestra el título dinámico (Crear Usuario o Editar Usuario) #}
+<p>Completa los datos del usuario.</p>
+
+<form method="POST">
+    {{ form.csrf_token }} {# Campo oculto de seguridad CSRF #}
+
+    <div class="form-group">
+        {{ form.username.label }}<br>
+        {{ form.username() }}
+        {% if form.username.errors %}
+            <ul class="errors">
+                {% for error in form.username.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+
+    <div class="form-group">
+        {{ form.email.label }}<br>
+        {{ form.email() }}
+        {% if form.email.errors %}
+            <ul class="errors">
+                {% for error in form.email.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+
+    <div class="form-group">
+        {{ form.password.label }}<br>
+        {# El campo de contraseña no debe pre-llenarse en edición #}
+        {{ form.password() }}
+        {% if form.password.errors %}
+            <ul class="errors">
+                {% for error in form.password.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        {% if user %} {# Mostrar mensaje solo en el formulario de edición #}
+        <small>Deja este campo vacío si no deseas cambiar la contraseña.</small>
+        {% endif %}
+    </div>
+
+    <div class="form-group">
+        {{ form.is_admin() }} {{ form.is_admin.label }}
+        {% if form.is_admin.errors %}
+            <ul class="errors">
+                {% for error in form.is_admin.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+
+    <div class="form-group">
+        {{ form.submit() }}
+    </div>
+</form>
+
+{# Opcional: Botón para cancelar y volver a la lista #}
+<p>
+    <a href="{{ url_for('list_users') }}" class="button button-secondary">Cancelar</a>
+</p>
+
+{% endblock %}
+
+{# Puedes añadir estilos específicos para el formulario aquí si no están en style.css #}
+{# block extra_css %}
+<style>
+    /* Estilos para los grupos de formulario y errores */
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: inline-block; margin-bottom: .5rem; font-weight: bold; }
+    .form-group input[type="text"],
+    .form-group input[type="email"],
+    .form-group input[type="password"],
+    .form-group input[type="number"],
+    .form-group select,
+    .form-group textarea {
+        display: block;
+        width: 100%; /* Ajusta si no quieres que ocupe todo el ancho */
+        padding: .375rem .75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #495057;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid #ced4da;
+        border-radius: .25rem;
+        transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+    }
+     .form-group input[type="checkbox"] {
+         width: auto; /* Los checkboxes no deben tener 100% de ancho */
+         margin-right: .5rem;
+         vertical-align: middle;
+     }
+     .form-group small {
+         display: block;
+         margin-top: .25rem;
+         font-size: 80%;
+         color: #6c757d;
+     }
+    ul.errors {
+        padding: 0;
+        margin: .25rem 0 0 0;
+        list-style: none;
+        color: #dc3545; /* Rojo para errores */
+        font-size: 80%;
+    }
+    ul.errors li { margin-bottom: .25rem; }
+
+    /* Estilos para los botones (si no están ya en style.css) */
+     .button {
+        display: inline-block;
+        font-weight: 400;
+        color: #212529;
+        text-align: center;
+        vertical-align: middle;
+        cursor: pointer;
+        user-select: none;
+        background-color: #007bff; /* Azul */
+        border: 1px solid #007bff;
+        padding: .375rem .75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        border-radius: .25rem;
+        transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+        text-decoration: none; /* Para enlaces que parecen botones */
+     }
+     .button:hover {
+         color: #fff;
+         background-color: #0056b3;
+         border-color: #0056b3;
+     }
+     .button-secondary {
+         color: #fff;
+         background-color: #6c757d; /* Gris */
+         border-color: #6c757d;
+     }
+     .button-secondary:hover {
+         color: #fff;
+         background-color: #5a6268;
+         border-color: #545b62;
+     }
+
+</style>
+{% endblock #}

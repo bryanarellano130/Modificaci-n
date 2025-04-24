@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Simulador de Amenazas{% endblock %}
+
+{% block content %}
+<h1>💥 Simulador de Amenazas</h1>
+<p>Genera escenarios de tráfico de red y ataques cibernéticos (usando lógica placeholder).</p>
+
+<div class="action-card">
+    <h2>Configurar y Ejecutar Simulación</h2>
+    <form method="POST" action="{{ url_for('simulate') }}">
+        <div class="form-group">
+            <label for="duration">Duración (segundos):</label>
+            {# --- CORRECCIÓN AQUÍ: Comprobar si last_simulation_info existe --- #}
+            <input type="number" id="duration" name="duration" value="{{ last_simulation_info.config.duration if last_simulation_info else 60 }}" min="5" max="3600" required>
+        </div>
+        <div class="form-group">
+            <label for="intensity">Intensidad del Ataque (1=Baja, 10=Alta):</label>
+            {# --- CORRECCIÓN AQUÍ: Comprobar si last_simulation_info existe --- #}
+            <input type="number" id="intensity" name="intensity" value="{{ last_simulation_info.config.intensity if last_simulation_info else 5 }}" min="1" max="10" required>
+        </div>
+        <div class="form-group">
+            <label for="attacks">Tipos de ataques para simular (selecciona uno o más con CTRL/CMD):</label>
+            {# --- CORRECCIÓN AQUÍ: Comprobar si last_simulation_info existe --- #}
+            {% set last_attacks = last_simulation_info.config.attacks if last_simulation_info else ['DDoS', 'Scan'] %}
+            <select id="attacks" name="attacks" multiple required size="4">
+                {# Opciones posibles #}
+                {% set possible_attacks = ['DDoS', 'Scan', 'Malware', 'Infiltration'] %}
+                {% for attack_option in possible_attacks %}
+                    <option value="{{ attack_option }}" {% if attack_option in last_attacks %}selected{% endif %}>
+                        {# Mostrar nombres más descriptivos si quieres #}
+                        {% if attack_option == 'Scan' %}Escaneo de Puertos (Scan)
+                        {% elif attack_option == 'Malware' %}Malware C&C
+                        {% else %}{{ attack_option }}{% endif %}
+                    </option>
+                {% endfor %}
+                {# Añade más opciones si tu simulador las soporta #}
+            </select>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="button">Ejecutar Simulación</button>
+        </div>
+    </form>
+</div>
+
+{# Mostrar vista previa de la última simulación si existe #}
+{% if last_simulation_preview_df is not none and not last_simulation_preview_df.empty %}
+    <div class="preview-section">
+        <h2>
+            Última Simulación Ejecutada
+            {# Mostrar info si está disponible #}
+            {% if last_simulation_info %}
+                 ({{ last_simulation_info.timestamp | format_datetime }}) -
+                 {{ last_simulation_info.rows_generated }} regs generados
+                 ({{ last_simulation_info.rows_in_session }} en vista previa)
+            {% endif %}
+        </h2>
+        <div class="table-container">
+            {# Renderizar el DataFrame pasado desde Flask #}
+            {{ last_simulation_preview_df.to_html(classes=['data-table', 'table-sm'], border=0, index=False, max_rows=100) | safe }}
+        </div>
+        {# Opción para usar estos datos en Detección (requiere lógica en la ruta /detect) #}
+        <form method="POST" action="{{ url_for('detect') }}" style="margin-top: 1rem;">
+             <input type="hidden" name="datasource" value="simulation">
+             <button type="submit" class="button button-secondary">Usar estos datos para Detección (requiere preprocesamiento)</button>
+        </form>
+    </div>
+{# Mostrar mensaje si se ejecutó pero no hay datos (ej: fallo o DF vacío) #}
+{% elif session.get('simulation_ran') and (last_simulation_preview_df is none or last_simulation_preview_df.empty) %}
+     <p class="alert alert-warning" style="margin-top: 1rem;">La última simulación no produjo datos válidos para la vista previa o hubo un error.</p>
+{% endif %}
+
+
+<div class="preview-section" style="margin-top: 2rem;">
+    <h2>Historial de Simulaciones (Metadata)</h2>
+    {% if simulation_history %}
+        <div class="table-container" style="max-height: 400px;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Configuración</th>
+                        <th>Registros</th>
+                        <th>Distribución Etiquetas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in simulation_history | reverse %} {# Más recientes primero #}
+                    <tr>
+                        <td>{{ entry.timestamp | format_datetime }}</td>
+                        <td>
+                            {# Usar .get para acceso seguro a config #}
+                            Dur: {{ entry.config.get('duration', 'N/A') }}s,
+                            Int: {{ entry.config.get('intensity', 'N/A') }},
+                            Ataques: {{ entry.config.get('attacks', []) | join(', ') }}
+                        </td>
+                        <td>{{ entry.num_records }}</td>
+                        <td>
+                            {# Mostrar distribución de etiquetas de forma más compacta #}
+                            {% if entry.label_distribution %}
+                                {% for label, count in entry.label_distribution.items() %}
+                                     <span style="white-space: nowrap;">{{ label }}: {{ count }}</span><br>
+                                {% endfor %}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p>No se han ejecutado simulaciones.</p>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    console.log("Simulator JS loaded");
+</script>
+{% endblock %}

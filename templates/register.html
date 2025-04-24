@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% from 'macros.html' import render_field %} {# Importar macro si lo usas #}
+
+{% block title %}Registro de Usuario{% endblock %}
+
+{% block content %}
+    <h1>Registro de Nuevo Usuario</h1>
+     <div class="action-card" style="max-width: 500px; margin: 2rem auto;">
+        <form method="POST" action="{{ url_for('register') }}">
+            {{ form.hidden_tag() }} {# CSRF Token #}
+
+            <div class="form-group">
+                {{ form.username.label }}
+                {{ form.username(class="form-control", placeholder="Elige un nombre de usuario") }}
+                {% if form.username.errors %}<div class="invalid-feedback">{% for error in form.username.errors %}{{ error }}{% endfor %}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                 {{ form.email.label }}
+                 {{ form.email(class="form-control", placeholder="tu@email.com") }}
+                 {% if form.email.errors %}<div class="invalid-feedback">{% for error in form.email.errors %}{{ error }}{% endfor %}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.password.label }}
+                {{ form.password(class="form-control", placeholder="Mínimo 6 caracteres") }}
+                 {% if form.password.errors %}<div class="invalid-feedback">{% for error in form.password.errors %}{{ error }}{% endfor %}</div>{% endif %}
+            </div>
+
+             <div class="form-group">
+                {{ form.confirm_password.label }}
+                {{ form.confirm_password(class="form-control", placeholder="Repite la contraseña") }}
+                 {% if form.confirm_password.errors %}<div class="invalid-feedback">{% for error in form.confirm_password.errors %}{{ error }}{% endfor %}</div>{% endif %}
+            </div>
+
+
+            <div class="form-group">
+                {{ form.submit(class="button") }}
+            </div>
+        </form>
+        <hr>
+        <p>¿Ya tienes cuenta? <a href="{{ url_for('login') }}">Inicia sesión aquí</a></p>
+    </div>
+    {# Estilos básicos para errores de formulario (añadir a style.css es mejor) #}
+    <style> .invalid-feedback { color: #dc3545; font-size: 0.85em; margin-top: 0.25rem; } .form-control:invalid, input.form-control.is-invalid { border-color: #dc3545; } </style>
+{% endblock %}

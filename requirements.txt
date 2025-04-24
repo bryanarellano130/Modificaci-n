@@ -1,0 +1,13 @@
+Flask>=2.0
+pandas
+numpy
+matplotlib
+seaborn
+scikit-learn
+Flask-SQLAlchemy
+mysql-connector-python
+Flask-WTF
+Flask-Login
+email-validator
+bcrypt
+# joblib # Solo si es necesario a usar

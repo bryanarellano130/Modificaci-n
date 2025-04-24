@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Reentrenamiento del Modelo{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Reentrenamiento del Modelo</h1>
+    <hr>
+
+    <div class="mb-3">
+        <label for="dataInput" class="form-label">Fuente de Nuevos Datos:</label>
+        <input type="text" id="dataInput" class="form-control" value="Data/new_training_data.csv" readonly>
+        <small class="form-text text-muted">
+            Por ahora, asume que los nuevos datos están en 'Data/new_training_data.csv'.
+            (Podrías añadir aquí un campo de subida de archivos).
+        </small>
+    </div>
+
+    <button id="startRetrainBtn" class="btn btn-primary">Iniciar Reentrenamiento</button>
+
+    <div id="statusArea" class="mt-4">
+        <h2>Estado del Proceso:</h2>
+        <div id="statusMessage" class="alert alert-secondary" role="alert">
+            Esperando inicio...
+        </div>
+        <div id="progressBarContainer" style="display: none;">
+            <div class="progress">
+                <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+        </div>
+        <pre><code id="statusLog" style="max-height: 300px; overflow-y: auto; display: block; background-color: #f8f9fa; border: 1px solid #dee2e6; padding: 10px;"></code></pre>
+    </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/retrain.js') }}"></script>
+{% endblock %}
