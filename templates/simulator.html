@@ -11,18 +11,18 @@
     <form method="POST" action="{{ url_for('simulate') }}">
         <div class="form-group">
             <label for="duration">Duración (segundos):</label>
-            {# --- CORRECCIÓN AQUÍ: Comprobar si last_simulation_info existe --- #}
+            {# --- Comprobar si last_simulation_info existe para valores por defecto --- #}
             <input type="number" id="duration" name="duration" value="{{ last_simulation_info.config.duration if last_simulation_info else 60 }}" min="5" max="3600" required>
         </div>
         <div class="form-group">
             <label for="intensity">Intensidad del Ataque (1=Baja, 10=Alta):</label>
-            {# --- CORRECCIÓN AQUÍ: Comprobar si last_simulation_info existe --- #}
+            {# --- Comprobar si last_simulation_info existe para valores por defecto --- #}
             <input type="number" id="intensity" name="intensity" value="{{ last_simulation_info.config.intensity if last_simulation_info else 5 }}" min="1" max="10" required>
         </div>
         <div class="form-group">
             <label for="attacks">Tipos de ataques para simular (selecciona uno o más con CTRL/CMD):</label>
-            {# --- CORRECCIÓN AQUÍ: Comprobar si last_simulation_info existe --- #}
-            {% set last_attacks = last_simulation_info.config.attacks if last_simulation_info else ['DDoS', 'Scan'] %}
+            {# --- Determinar los ataques seleccionados previamente o usar un valor por defecto --- #}
+            {% set last_attacks = last_simulation_info.config.attacks if last_simulation_info and last_simulation_info.config and last_simulation_info.config.attacks is iterable else ['DDoS', 'Scan'] %}
             <select id="attacks" name="attacks" multiple required size="4">
                 {# Opciones posibles #}
                 {% set possible_attacks = ['DDoS', 'Scan', 'Malware', 'Infiltration'] %}
@@ -43,38 +43,45 @@
     </form>
 </div>
 
-{# Mostrar vista previa de la última simulación si existe #}
-{% if last_simulation_preview_df is not none and not last_simulation_preview_df.empty %}
-    <div class="preview-section">
-        <h2>
-            Última Simulación Ejecutada
-            {# Mostrar info si está disponible #}
-            {% if last_simulation_info %}
-                 ({{ last_simulation_info.timestamp | format_datetime }}) -
-                 {{ last_simulation_info.rows_generated }} regs generados
-                 ({{ last_simulation_info.rows_in_session }} en vista previa)
-            {% endif %}
-        </h2>
+{# --- SECCIÓN CORREGIDA PARA MOSTRAR RESULTADOS DE LA ÚLTIMA SIMULACIÓN O MENSAJE --- #}
+
+{# Mostrar vista previa de la última simulación si existe y tiene datos (usando la variable HTML ya generada) #}
+{# Asegúrate de que last_simulation_preview_html sea la cadena HTML generada por Pandas #}
+{% if last_simulation_preview_html and last_simulation_preview_df is not none and not last_simulation_preview_df.empty %}
+    <div class="preview-section" style="margin-top: 2rem;">
+        <h2>Resultados de la Última Simulación</h2>
+        <h5>Vista Previa (primeras filas):</h5>
         <div class="table-container">
-            {# Renderizar el DataFrame pasado desde Flask #}
-            {{ last_simulation_preview_df.to_html(classes=['data-table', 'table-sm'], border=0, index=False, max_rows=100) | safe }}
+             {# Renderiza la cadena HTML generada del DataFrame. Usa 'safe' para renderizar HTML. #}
+            {{ last_simulation_preview_html | safe }}
         </div>
-        {# Opción para usar estos datos en Detección (requiere lógica en la ruta /detect) #}
+        {# Opción para usar estos datos en Detección #}
         <form method="POST" action="{{ url_for('detect') }}" style="margin-top: 1rem;">
              <input type="hidden" name="datasource" value="simulation">
-             <button type="submit" class="button button-secondary">Usar estos datos para Detección (requiere preprocesamiento)</button>
+             <button type="submit" class="button button-secondary">Usar estos datos para Detección</button>
         </form>
     </div>
-{# Mostrar mensaje si se ejecutó pero no hay datos (ej: fallo o DF vacío) #}
+
+{# Mostrar mensaje si se ejecutó pero no hay datos válidos en el DataFrame para mostrar #}
+{# El elif debe seguir inmediatamente al if sin HTML o Jinja tags intermedios que no sean parte de la estructura if/elif/else #}
 {% elif session.get('simulation_ran') and (last_simulation_preview_df is none or last_simulation_preview_df.empty) %}
-     <p class="alert alert-warning" style="margin-top: 1rem;">La última simulación no produjo datos válidos para la vista previa o hubo un error.</p>
+     <div class="preview-section" style="margin-top: 2rem;">
+        <p class="alert alert-warning">La última simulación se ejecutó, pero no produjo datos válidos para la vista previa o hubo un error.</p>
+     </div>
+
+{# El 'else' opcional aquí podría ser para mostrar algo si NUNCA se ha ejecutado una simulación #}
+{# {% else %}
+     <p>Ejecuta una simulación para ver los resultados aquí.</p>
+{% endif %} #}
+
 {% endif %}
+{# --- FIN DE LA SECCIÓN CORREGIDA --- #}
 
 
 <div class="preview-section" style="margin-top: 2rem;">
     <h2>Historial de Simulaciones (Metadata)</h2>
     {% if simulation_history %}
-        <div class="table-container" style="max-height: 400px;">
+        <div class="table-container" style="max-height: 400px; overflow-y: auto;"> {# Added overflow for scrolling #}
             <table class="data-table">
                 <thead>
                     <tr>
@@ -90,16 +97,20 @@
                         <td>{{ entry.timestamp | format_datetime }}</td>
                         <td>
                             {# Usar .get para acceso seguro a config #}
-                            Dur: {{ entry.config.get('duration', 'N/A') }}s,
-                            Int: {{ entry.config.get('intensity', 'N/A') }},
-                            Ataques: {{ entry.config.get('attacks', []) | join(', ') }}
+                            {# Asegúrate de que entry.config existe y es un diccionario #}
+                            {% set config = entry.config if entry.config is mapping else {} %}
+                            Dur: {{ config.get('duration', 'N/A') }}s,<br>
+                            Int: {{ config.get('intensity', 'N/A') }},<br>
+                            Ataques: {{ config.get('attacks', []) | join(', ') }}
                         </td>
                         <td>{{ entry.num_records }}</td>
                         <td>
                             {# Mostrar distribución de etiquetas de forma más compacta #}
-                            {% if entry.label_distribution %}
-                                {% for label, count in entry.label_distribution.items() %}
-                                     <span style="white-space: nowrap;">{{ label }}: {{ count }}</span><br>
+                            {# Asegúrate de que entry.label_distribution existe y es un diccionario #}
+                            {% set distribution = entry.label_distribution if entry.label_distribution is mapping else {} %}
+                            {% if distribution %}
+                                {% for label, count in distribution.items() %}
+                                    <span style="white-space: nowrap;">{{ label }}: {{ count }}</span><br>
                                 {% endfor %}
                             {% else %}
                                 N/A
