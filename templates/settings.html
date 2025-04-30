@@ -1,0 +1,70 @@
+{# templates/settings.html #}
+{% extends "base.html" %} {# Asume que tienes un base.html con la estructura común (sidebar, etc.) #}
+
+{% block title %}Configuración del Sistema{% endblock %}
+
+{% block content %}
+<h1 class="mt-4">⚙️ Configuración del Sistema</h1>
+<p>Ajusta los parámetros de detección y alertas.</p>
+<hr>
+
+{# Mostrar mensajes flash si los hay #}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category or 'info' }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+
+{# --- Formulario Principal --- #}
+{# Envía los datos a la misma ruta '/settings' usando POST #}
+<form method="post" action="{{ url_for('settings') }}">
+
+    {# --- Configuración del Modelo GLM --- #}
+    <h4>Configuración del Modelo</h4>
+    <div class="mb-3">
+        <label for="glm_threshold" class="form-label">Umbral de Decisión Modelo GLM (Probabilidad para clasificar como 'Ataque'):
+            <span id="thresholdValue" class="badge bg-secondary">{{ '%.2f'|format(glm_threshold) }}</span>
+        </label>
+        {# Usamos un input tipo range (slider) y mostramos el valor con JS #}
+        <input type="range" class="form-range" id="glm_threshold" name="glm_threshold"
+               min="0.1" max="0.9" step="0.05"
+               value="{{ glm_threshold }}"
+               oninput="document.getElementById('thresholdValue').textContent = parseFloat(this.value).toFixed(2);">
+        <small class="form-text text-muted">Define la probabilidad mínima para considerar una predicción como ataque (usado por el detector).</small>
+    </div>
+
+    <hr>
+
+    {# --- Configuración de Alertas --- #}
+    <h4>Configuración de Alertas</h4>
+    <div class="mb-3">
+        <label for="severity_threshold" class="form-label">Generar/Notificar alerta solo si la severidad es igual o superior a:</label>
+        <select class="form-select" id="severity_threshold" name="severity_threshold">
+            {# Itera sobre los niveles pasados desde Flask #}
+            {% for level in alert_severity_levels %}
+                <option value="{{ level }}" {% if level == severity_threshold %}selected{% endif %}>{{ level }}</option>
+            {% endfor %}
+        </select>
+         <small class="form-text text-muted">Establece el nivel mínimo de severidad para las notificaciones/acciones.</small>
+    </div>
+
+    <div class="form-check mb-3">
+        {# El checkbox envía 'on' si está marcado. Se verifica en Flask #}
+        <input class="form-check-input" type="checkbox" id="notify_email" name="notify_email" value="on" {% if notify_email %}checked{% endif %}>
+        <label class="form-check-label" for="notify_email">
+            Notificar por Email (Funcionalidad Simulada/Futura)
+        </label>
+    </div>
+
+    <hr>
+
+    <button type="submit" class="btn btn-primary">Guardar Configuración</button>
+</form>
+
+{% endblock %}

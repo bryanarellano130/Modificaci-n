@@ -1,164 +1,118 @@
 {# templates/admin.html #}
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
 {% block title %}Administración{% endblock %}
 
 {% block content %}
-<h1>⚙️ Administración</h1>
-<p>Configura el sistema y gestiona tareas administrativas.</p>
+<h1 class="mt-4">⚙️ Administración del Sistema</h1>
+<p>Configura parámetros globales, gestiona usuarios y realiza tareas de mantenimiento.</p>
+<hr>
 
-<div class="admin-sections"> {# Mantener la estructura de grid #}
+{# Mostrar mensajes flash si los hay #}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category or 'info' }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
 
-    {# Tarjeta para Configuración del Sistema (Modelo) #}
-    <div class="action-card"> {# Usar la clase existente #}
-        <h2>Configuración del Sistema</h2>
+{# --- Sección de Configuración --- #}
+<div class="card mb-4">
+    <div class="card-header">Configuración General</div>
+    <div class="card-body">
+        {# Usamos un formulario que apunta a la ruta de acciones #}
         <form method="POST" action="{{ url_for('admin_actions') }}">
-            {# Incluir CSRF token si es necesario #}
-            {# {{ system_config_form.csrf_token }} #}
+            {# Campo oculto para indicar la acción específica #}
             <input type="hidden" name="action" value="update_threshold">
-            <div class="form-group">
-                <label for="glm_threshold">Umbral de Decisión Modelo GLM (Probabilidad para clasificar como 'Ataque'):</label>
-                {# Usar step, min, max y value como antes #}
-                <input type="number" step="0.01" min="0.05" max="0.95" id="glm_threshold"
-                       name="glm_threshold" value="{{ system_config.glm_threshold | default(0.7) }}" class="form-control"> {# Añadido form-control para estilo #}
-                 {# Mostrar valor actual formateado si es número #}
-                <small class="form-text text-muted">Valor actual: {{ system_config.glm_threshold | float | default('N/A') }}</small>
-            </div>
-            <div class="form-group mt-3"> {# Añadido margen #}
-                {# Usar clases de botón de Bootstrap para consistencia con otras plantillas #}
-                <button type="submit" class="btn btn-primary">Guardar Config. Modelo</button>
-            </div>
-        </form>
-    </div>
 
-    {# Tarjeta para Configuración de Alertas #}
-    <div class="action-card"> {# Usar la clase existente #}
-        <h2>Configuración de Alertas</h2>
+            <div class="mb-3">
+                <label for="glm_threshold_admin" class="form-label">Umbral de Decisión Modelo GLM:
+                    <span id="thresholdValueAdmin" class="badge bg-secondary">{{ '%.2f'|format(glm_threshold) }}</span>
+                </label>
+                <input type="range" class="form-range" id="glm_threshold_admin" name="glm_threshold_admin"
+                       min="0.1" max="0.9" step="0.05" value="{{ glm_threshold }}"
+                       oninput="document.getElementById('thresholdValueAdmin').textContent = parseFloat(this.value).toFixed(2);">
+                 <small class="form-text text-muted">Ajusta la sensibilidad del modelo de detección.</small>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">Actualizar Umbral</button>
+        </form>
+
+        <hr>
+
         <form method="POST" action="{{ url_for('admin_actions') }}">
-             {# Incluir CSRF token si es necesario #}
-            {# {{ alert_config_form.csrf_token }} #}
             <input type="hidden" name="action" value="update_alert_config">
-            <div class="form-group mb-3"> {# Añadido margen inferior #}
-                <label for="alert_severity_threshold" class="form-label">Generar alerta solo si severidad es >=:</label>
-                <select id="alert_severity_threshold" name="alert_severity_threshold" class="form-select"> {# Añadido form-select #}
+             <div class="mb-3">
+                <label for="alert_severity_threshold_admin" class="form-label">Umbral Mínimo de Severidad para Alertas:</label>
+                <select class="form-select form-select-sm" id="alert_severity_threshold_admin" name="alert_severity_threshold_admin">
                     {% for level in alert_severity_levels %}
-                        <option value="{{ level }}" {% if level == alert_config.severity_threshold %}selected{% endif %}>
-                            {{ level }}
-                        </option>
+                        <option value="{{ level }}" {% if level == alert_severity_threshold %}selected{% endif %}>{{ level }}</option>
                     {% endfor %}
                 </select>
-                 <small class="form-text text-muted">Valor actual: {{ alert_config.severity_threshold | default('Media') }}</small>
-            </div>
-            <div class="form-group form-check mb-3"> {# Usar form-check y margen #}
-                {# Mover input dentro de label para mejor accesibilidad #}
-                <input type="checkbox" name="notify_email" id="notify_email" value="true" class="form-check-input" {% if alert_config.notify_email %}checked{% endif %}>
-                <label class="form-check-label" for="notify_email">
+             </div>
+             <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="notify_email_admin" name="notify_email_admin" value="on" {% if notify_email %}checked{% endif %}>
+                <label class="form-check-label" for="notify_email_admin">
                     Notificar por Email (Simulado)
                 </label>
-                 <small class="form-text text-muted d-block">Estado actual: {{ 'Activado' if alert_config.notify_email else 'Desactivado' }}</small> {# Añadido d-block #}
             </div>
-            <div class="form-group">
-                <button type="submit" class="btn btn-primary">Guardar Config. Alertas</button> {# Usar clases Bootstrap #}
-            </div>
+             <button type="submit" class="btn btn-primary btn-sm">Actualizar Config. Alertas</button>
         </form>
     </div>
+</div>
 
-    {# <<< NUEVA TARJETA: Borrar Todas las Alertas >>> #}
-    <div class="action-card"> {# Usar la clase existente #}
-        <h2 class="text-danger"><i class="fas fa-exclamation-triangle"></i> Zona Peligrosa - Alertas</h2> {# Título en rojo con icono #}
-        <p><strong>¡Atención!</strong> La siguiente acción borrará permanentemente todas las alertas del sistema.</p>
-        <form method="POST" action="{{ url_for('admin_actions') }}" onsubmit="return confirm('¿Estás SEGURO de que quieres borrar TODAS las alertas? Esta acción no se puede deshacer.');">
-             {# Incluir CSRF token si es necesario #}
-            {# {{ delete_alerts_form.csrf_token }} #}
-            <input type="hidden" name="action" value="delete_all_alerts">
-            <div class="form-group">
-                {# Usar clases de botón de Bootstrap #}
-                <button type="submit" class="btn btn-danger">
-                    <i class="fas fa-trash-alt"></i> Borrar Todas las Alertas Permanentemente {# Icono (requiere FontAwesome) #}
-                </button>
-            </div>
+{# --- Sección de Acciones --- #}
+<div class="card mb-4">
+    <div class="card-header">Acciones de Mantenimiento</div>
+    <div class="card-body">
+        {# Botón para Reentrenar #}
+        <form method="POST" action="{{ url_for('admin_actions') }}" class="d-inline me-2">
+             <input type="hidden" name="action" value="retrain">
+             <button type="submit" class="btn btn-warning" onclick="return confirm('¿Estás seguro de que deseas reentrenar el modelo? Esto puede tardar y usará los últimos datos preprocesados.');">
+                 <i class="fas fa-sync-alt"></i> Reentrenar Modelo
+             </button>
+             <small class="form-text text-muted d-block">Usa los últimos datos preprocesados para reentrenar y guardar el modelo.</small>
+        </form>
+
+        <hr>
+
+        {# Botón para Borrar Alertas #}
+        <form method="POST" action="{{ url_for('admin_actions') }}" class="d-inline">
+             <input type="hidden" name="action" value="delete_all_alerts">
+             <button type="submit" class="btn btn-danger" onclick="return confirm('¡PRECAUCIÓN! ¿Estás seguro de que deseas eliminar TODAS las alertas de la base de datos? Esta acción no se puede deshacer.');">
+                 <i class="fas fa-trash-alt"></i> Eliminar Todas las Alertas
+             </button>
+             <small class="form-text text-muted d-block">Borra permanentemente todo el historial de alertas.</small>
         </form>
     </div>
-    {# <<< FIN NUEVA TARJETA >>> #}
+</div>
 
-    {# Tarjeta para Reentrenamiento #}
-    <div class="action-card"> {# Usar la clase existente #}
-        <h2>Reentrenamiento del Modelo</h2>
-        <p>Reentrena el modelo de Machine Learning con los datos preprocesados actuales.</p> {# Mensaje más descriptivo #}
-        <form method="POST" action="{{ url_for('admin_actions') }}" onsubmit="return confirm('¿Estás seguro de iniciar el reentrenamiento? Esto puede tardar y usará los datos actualmente preprocesados.');"> {# Mensaje de confirmación mejorado #}
-             {# Incluir CSRF token si es necesario #}
-            {# {{ retrain_form.csrf_token }} #}
-            <input type="hidden" name="action" value="retrain">
-            <div class="form-group">
-                {# Usar clases Bootstrap y quitar clase específica de JS si main.js no la usa #}
-                <button type="submit" class="btn btn-warning"> {# Usar btn-warning para acción potencialmente larga/costosa #}
-                    <i class="fas fa-brain"></i> Iniciar Reentrenamiento {# Icono (requiere FontAwesome) #}
-                </button>
-            </div>
-        </form>
+{# --- Sección Gestión de Usuarios (Enlaces) --- #}
+<div class="card mb-4">
+    <div class="card-header">Gestión de Usuarios</div>
+    <div class="card-body">
+        <a href="{{ url_for('list_users') }}" class="btn btn-secondary"><i class="fas fa-users"></i> Ver/Editar Usuarios</a>
+        <a href="{{ url_for('create_user') }}" class="btn btn-success"><i class="fas fa-user-plus"></i> Crear Nuevo Usuario</a>
     </div>
+</div>
 
-    {# Tarjeta para Gestión de Usuarios #}
-    <div class="action-card"> {# Usar la clase existente #}
-        <h2><i class="fas fa-users-cog"></i> Gestión de Usuarios y Roles</h2> {# Icono (requiere FontAwesome) #}
-        <p>Administra las cuentas de usuario y sus permisos.</p> {# Descripción #}
-        {# Enlace a la lista de usuarios usando clases de botón Bootstrap #}
-        <a href="{{ url_for('list_users') }}" class="btn btn-secondary">
-             <i class="fas fa-users"></i> Gestionar Usuarios {# Icono (requiere FontAwesome) #}
-        </a>
+
+{# --- Sección de Logs (Placeholder) --- #}
+<div class="card">
+    <div class="card-header">Logs del Sistema (Ejemplo)</div>
+    <div class="card-body" style="max-height: 400px; overflow-y: auto; background-color: #212529; color: #f8f9fa; font-family: monospace; font-size: 0.85em;">
+        {# Iterar sobre los logs pasados desde Flask #}
+        {% if system_logs %}
+            {% for log_line in system_logs %}
+                <div>{{ log_line }}</div>
+            {% endfor %}
+        {% else %}
+            <p>No hay logs para mostrar.</p>
+        {% endif %}
     </div>
+</div>
 
-    {# Tarjeta para Registros del Sistema #}
-    <div class="action-card"> {# Usar la clase existente #}
-        <h2><i class="fas fa-clipboard-list"></i> Registros del Sistema (Simulados)</h2> {# Icono (requiere FontAwesome) #}
-         {# Usar clases de form-control de Bootstrap #}
-        <textarea readonly class="form-control"
-                  style="height: 300px; background-color: #e9ecef; font-family: monospace; font-size: 0.8rem; white-space: pre;">{{ system_logs if system_logs is string else system_logs | tojson(indent=2) if system_logs else 'No hay logs disponibles.' }}</textarea> {# Manejar logs que no sean string #}
-    </div>
-
-</div> {# Cierre de admin-sections #}
-
-{% endblock %}
-
-{# CSS ya está en el bloque extra_js original, lo mantenemos pero adaptamos #}
-{% block extra_js %}
-<style>
-    .admin-sections {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(min(100%, 350px), 1fr)); /* Ajuste minmax */
-        gap: 1.5rem;
-    }
-
-    /* Estilos para las action-card (si no los define style.css) */
-    .action-card {
-        border: 1px solid #dee2e6;
-        border-radius: 0.375rem; /* Equivalente a .rounded de Bootstrap */
-        padding: 1.25rem; /* Equivalente a p-3 o p-4 */
-        background-color: #fff;
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075); /* Sombra suave */
-    }
-    .action-card h2 {
-        margin-bottom: 1rem; /* Espacio después del título */
-        font-size: 1.25rem; /* Tamaño título */
-        border-bottom: 1px solid #eee; /* Línea separadora ligera */
-        padding-bottom: 0.5rem;
-    }
-    .action-card .form-group {
-        margin-bottom: 1rem; /* Espacio entre grupos de formulario */
-    }
-    /* Ajustar tamaño de botones si es necesario */
-    /* .action-card .btn { width: 100%; } */
-
-    textarea[readonly].form-control { /* Estilo específico para textarea readonly */
-        background-color: #e9ecef !important; /* Forzar fondo gris claro */
-        cursor: default;
-        color: #495057;
-    }
-</style>
-{# El script JS del archivo original no es necesario si no se usa main.js para confirmación #}
-{# <script src="{{ url_for('static', filename='js/main.js') }}"></script> #}
-<script>
-    console.log("Admin JS loaded");
-    // Puedes añadir JS específico para la página de admin aquí si es necesario
-</script>
 {% endblock %}

@@ -14,18 +14,27 @@
     <div class="metric-card">
         <h2>Última Detección</h2>
         {% if last_detection %}
-            <p><strong>Fecha:</strong> {{ last_detection.timestamp | format_datetime }}</p> {# Necesitas un filtro Jinja2 para formatear fecha #}
+            {# --- CORRECCIÓN AQUÍ: Usar 'ts' en lugar de 'timestamp' --- #}
+            <p><strong>Fecha:</strong> {{ last_detection.ts | format_datetime if last_detection.ts else 'N/A' }}</p>
+            {# --- FIN CORRECCIÓN --- #}
+    
+            {# Comprobación más robusta para accuracy #}
             <p><strong>Accuracy:</strong>
-                {% if last_detection.metrics.accuracy %}
-                    {{ "%.2f%%" % (last_detection.metrics.accuracy * 100) }}
+                {% if last_detection.metrics and last_detection.metrics.accuracy is not none %}
+                    {# Formatear solo si es numérico #}
+                    {% if last_detection.metrics.accuracy is number or (last_detection.metrics.accuracy is string and last_detection.metrics.accuracy | float('error') != 'error') %}
+                         {{ "%.2f%%" % (last_detection.metrics.accuracy | float * 100) }}
+                    {% else %}
+                         {{ last_detection.metrics.accuracy }} {# Mostrar como string si no es número #}
+                    {% endif %}
                 {% else %}
                     N/A
                 {% endif %}
             </p>
         {% else %}
-            <p>N/A</p>
+            <p>N/A</p> {# Mensaje si no hay historial #}
         {% endif %}
-         <a href="{{ url_for('detect') }}">Ir a Detección</a>
+        <a href="{{ url_for('detect') }}">Ir a Detección</a>
     </div>
     <div class="metric-card">
         <h2>Estado del Modelo</h2>

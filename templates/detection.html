@@ -1,195 +1,299 @@
 {# templates/detection.html #}
-{% extends 'base.html' %}
+{% extends "base.html" %} {# Asume que tienes un base.html con tu layout #}
 
 {% block title %}Detección y Análisis{% endblock %}
 
 {% block content %}
-<h1>🔍 Detección y Análisis</h1>
-<p>Aplica el modelo de Machine Learning entrenado para detectar amenazas.</p>
+<h1 class="mt-4">🔍 Detección y Análisis</h1>
+<p>Aplica el modelo de Machine Learning entrenado para detectar amenazas en los datos seleccionados.</p>
 
-{# Formulario de Detección (sin cambios) #}
-<div class="action-card card mb-3">
-    <div class="card-header">1. Seleccionar Datos y Ejecutar Detección</div>
+{# Mostrar mensajes flash #}
+{% include 'includes/_flash_messages.html' %} {# Asegúrate que templates/includes/_flash_messages.html exista #}
+
+{# --- Formulario para iniciar la detección --- #}
+<div class="action-card card mb-4 shadow-sm">
+    <div class="card-header bg-primary text-white"><strong>1. Seleccionar Datos y Ejecutar Detección</strong></div>
     <div class="card-body">
-        <p>Selecciona una fuente de datos y haz clic en "Iniciar Detección" para analizarla.</p>
+        <p>Elige una fuente de datos y haz clic en "Iniciar Detección".</p>
         <form method="POST" action="{{ url_for('detect') }}" id="detection-form">
             <div class="form-group mb-3">
                 <label for="datasource" class="form-label">Fuente de Datos:</label>
                 <select id="datasource" name="datasource" class="form-select" required>
                     <option value="">-- Selecciona --</option>
-                    {% if has_processed_data %}<option value="processed">Datos Preprocesados</option>{% endif %}
-                    {% if has_simulation_data %}<option value="simulation">Última Simulación</option>{% endif %}
+                    {% if has_processed_data %}<option value="processed">Datos Preprocesados Cargados</option>{% endif %}
+                    {% if has_simulation_data %}<option value="simulation">Última Simulación Generada</option>{% endif %}
                 </select>
-                {% if not has_processed_data and not has_simulation_data %}<div class="form-text text-warning mt-2">No hay fuentes disponibles.</div>
-                {% else %}{% if not has_processed_data %}<div class="form-text text-warning mt-2">Opción 'Datos Preprocesados' no disponible.</div>{% endif %}{% if not has_simulation_data %}<div class="form-text text-warning mt-2">Opción 'Última Simulación' no disponible.</div>{% endif %}{% endif %}
+                {% if not has_processed_data and not has_simulation_data %}
+                    <div class="form-text text-danger mt-2">⚠️ No hay fuentes disponibles.</div>
+                {% else %}
+                    {% if not has_processed_data %}<div class="form-text text-warning mt-1"><small>Opción 'Datos Preprocesados' no disponible.</small></div>{% endif %}
+                    {% if not has_simulation_data %}<div class="form-text text-warning mt-1"><small>Opción 'Última Simulación' no disponible.</small></div>{% endif %}
+                {% endif %}
             </div>
             <div class="form-group">
-                <button type="submit" class="btn btn-primary" {% if not has_processed_data and not has_simulation_data %}disabled{% endif %}>Iniciar Detección</button>
+                <button type="submit" class="btn btn-primary" {% if not has_processed_data and not has_simulation_data %}disabled{% endif %}>
+                    <i class="fas fa-play"></i> Iniciar Detección
+                </button>
             </div>
         </form>
-        <div id="loading-indicator" style="display: none; margin-top: 1rem;"><p><strong>Ejecutando...</strong><span class="spinner-border spinner-border-sm ms-2" role="status" aria-hidden="true"></span></p></div>
+        <div id="loading-indicator" style="display: none; margin-top: 1rem;"><p><strong><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Ejecutando Detección...</strong></p></div>
     </div>
 </div>
+
 
 {# --- SECCIÓN: Resultados de la Última Detección Ejecutada --- #}
-{# Muestra resultados de session['last_detection_results'] #}
-{% if last_results %}
-<div class="card mb-3">
-    <div class="card-header">
-        Detalles de la Última Detección Ejecutada ({{ last_results.ts | format_datetime if last_results.ts else 'N/A' }})
+<div class="card mb-4 shadow-sm">
+    <div class="card-header bg-light">
+        <i class="fas fa-poll"></i> Resultados de la Última Detección Ejecutada
+        {% if last_detection_results and last_detection_results.ts %}
+        <small class="text-muted float-end">({{ last_detection_results.ts | format_datetime }})</small>
+        {% endif %}
     </div>
     <div class="card-body">
-        <p><strong>Fuente:</strong> {{ last_results.src | default('N/A') }} | <strong>Filas Analizadas:</strong> {{ last_results.rows if last_results.rows is not none else 'N/A' }}</p>
+        {% if last_detection_results %}
+            <p><strong>Fuente:</strong> {{ last_detection_results.src | default('N/A') }} |
+               <strong>Filas Analizadas:</strong> {{ last_detection_results.rows if last_detection_results.rows is not none else 'N/A' }} |
+               <strong>Umbral Usado:</strong> {% if last_detection_results.thr is not none %}{{ "%.2f"|format(last_detection_results.thr|float) }}{% else %}N/A{% endif %}
+            </p>
 
-        {# --- Métricas y Visualización de la ÚLTIMA DETECCIÓN --- #}
-        {% if last_results.metrics %}
-            <div class="row">
-                {# Columna para Métricas y Reporte #}
-                <div class="col-md-7">
-                    <h5 class="mt-3">Métricas de Esta Detección:</h5>
-                    {% if last_results.metrics.accuracy is not none %}
-                        {% if last_results.metrics.accuracy is number or (last_results.metrics.accuracy is string and last_results.metrics.accuracy | float('error') != 'error') %}
-                            <p><strong>Accuracy:</strong> {{ last_results.metrics.accuracy | float | round(4) }} ({{ "%.2f%%" % (last_results.metrics.accuracy | float * 100) }})</p>
-                        {% else %}
-                            <p><strong>Accuracy:</strong> {{ last_results.metrics.accuracy | default('N/A') }}</p>
-                        {% endif %}
-                    {% else %}
-                         <p class="text-muted">Accuracy no calculada.</p>
-                    {% endif %}
-
-                    {# Reporte de Clasificación de esta Detección #}
-                    {% if report_df %} {# report_df ahora contiene el HTML del reporte de la última detección #}
-                        <h6 class="mt-2">Reporte de Clasificación:</h6>
-                        <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
-                             {{ report_df | safe | replace('<table border="1" class="dataframe">', '<table class="table table-striped table-hover table-sm">') | replace('<table class="data-table table-sm" border="0">','<table class="table table-striped table-hover table-sm">') | replace('<th>','<th scope="col">') | safe }}
-                        </div>
-                    {% else %}
-                        <p class="text-muted mt-2">Reporte de clasificación no disponible para esta detección.</p>
-                    {% endif %}
-                </div>
-
-                {# Columna para Matriz de Confusión de esta Detección #}
-                <div class="col-md-5">
-                    <h5 class="mt-3">Matriz de Confusión:</h5>
-                    {# <<< CORRECCIÓN: Usar detection_cm_plot_url >>> #}
-                    {% if detection_cm_plot_url %}
-                        <img src="{{ detection_cm_plot_url }}" alt="Matriz de Confusión (Última Detección)" class="img-fluid border rounded mb-2" style="max-width: 100%;">
-                        {# <<< NUEVO: Botón para descargar la imagen CM guardada >>> #}
-                        {% if detection_cm_filename %}
-                        <a href="{{ url_for('download_plot', filename=detection_cm_filename) }}" class="btn btn-sm btn-outline-secondary">
-                            <i class="fas fa-download"></i> Descargar Imagen CM
-                        </a>
-                        {% endif %}
-                        {# <<< FIN NUEVO >>> #}
-                    {% else %}
-                        <p class="text-muted">Matriz de confusión no disponible para esta detección.</p>
-                    {% endif %}
-                </div>
-            </div> {# Fin de .row #}
-
-            {# Resumen de Predicciones (debajo de la fila de métricas/CM) #}
-            {% if last_results.summary %}
-                <h5 class="mt-4">Resumen de Predicciones:</h5>
-                <ul class="list-unstyled">
-                {% for label, count in last_results.summary.items() %}
-                    <li>{{ label | default('N/A') }}: <span class="badge bg-secondary">{{ count if count is number else 'N/A' }}</span></li>
-                {% endfor %}
-                </ul>
-            {% else %}
-                <p class="text-muted mt-4">Resumen de predicciones no disponible.</p>
-            {% endif %}
-
-        {% else %}
-            <p class="text-muted mt-3">Métricas no disponibles para esta detección.</p>
-        {% endif %}
-
-        {# Botón de descarga del Reporte CSV Resumido #}
-        <div class="mt-4">
-            <a href="{{ url_for('download_last_detection_csv') }}" class="btn btn-info">
-                 <i class="fas fa-download"></i> Descargar Reporte CSV Resumido
-            </a>
-        </div>
-
-        {# Vista Previa de Datos con Predicciones #}
-        {% if data_head_html %}
-            <h5 class="mt-4">Vista Previa de Predicciones (Primeras Filas):</h5>
-            <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
-                 {{ data_head_html | safe | replace('<table class="data-table table-sm" border="0">','<table class="table table-striped table-hover table-sm">') | replace('<th>','<th scope="col">') | safe }}
-            </div>
-        {% else %}
-             <p class="text-muted mt-4">No hay vista previa de datos.</p>
-        {% endif %}
-    </div>
-</div>
-{% else %}
-    <p class="text-muted mt-3">Ejecuta una detección para ver los detalles aquí.</p>
-{% endif %}
-
-
-{# Sección Alertas Activas (con corrección 'is mapping') #}
-<div class="card mb-3">
-    <div class="card-header"><i class="fas fa-bell"></i> Alertas Activas {% if active_alerts %}({{ active_alerts|length }}){% endif %}</div>
-    {% if active_alerts %}
-    <div class="card-body p-0">
-        <ul class="list-group list-group-flush" style="max-height: 350px; overflow-y: auto;">
-            {% for alert in active_alerts %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                {% if alert is mapping %} {# Check si es diccionario #}
-                    <div>
-                        <small class="text-muted">{{ alert.timestamp | format_datetime if alert.timestamp else 'N/A' }}</small><br>
-                        {{ alert.get('message', 'N/A') }}
-                        {% if alert.get('severity') %}<span class="badge rounded-pill {% if alert.severity == 'Crítica' %}bg-danger{% elif alert.severity == 'Alta' %}bg-warning text-dark{% elif alert.severity == 'Media' %}bg-info text-dark{% else %}bg-secondary{% endif %}">{{ alert.severity }}</span>{% endif %}
-                        {% if alert.get('details') is mapping %}
-                            {% if alert.details.get('src_ip') %}<br><small class="text-muted">IP Origen: {{ alert.details.src_ip }}</small>{% endif %}
-                            {% if alert.details.get('dst_ip') %}<small class="text-muted ms-2">IP Destino: {{ alert.details.dst_ip }}</small>{% endif %}
-                        {% endif %}
+            {# --- Métricas y Gráfico CM de ESTA Detección --- #}
+            {% set last_metrics = last_detection_results.get('metrics') %}
+            {% if last_metrics %}
+                 <div class="row mb-3"> {# Añadido mb-3 para espacio #}
+                    <div class="col-md-7">
+                         <h5 class="mt-1">Métricas (Última Detección):</h5>
+                         {% if last_metrics.accuracy is not none %}
+                             <p><strong>Accuracy:</strong> {{ "%.4f" | format(last_metrics.accuracy | float) }} ({{ "%.2f%%" | format(last_metrics.accuracy | float * 100) }})</p>
+                         {% else %}
+                             <p class="text-muted"><small>Accuracy no calculada.</small></p>
+                         {% endif %}
+                         {# Reporte (si existe como HTML o dict) #}
+                         {% set last_report_html = last_metrics.get('report_html') %}
+                         {% if last_report_html %}
+                             <h6 class="mt-2">Reporte Clasificación:</h6>
+                             <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                                 {{ last_report_html | safe | replace('<table border="1" class="dataframe">', '<table class="table table-striped table-hover table-sm">') | replace('<th>','<th scope="col">') | safe }}
+                             </div>
+                         {% elif last_metrics.report %}
+                              <h6 class="mt-2">Reporte Clasificación (Datos):</h6>
+                              <pre><code style="font-size: 0.8em;">{{ last_metrics.report | pprint }}</code></pre>
+                         {% else %}<p class="text-muted mt-2"><small>Reporte no disponible.</small></p>{% endif %}
                     </div>
-                    <form method="POST" action="{{ url_for('mark_alert_reviewed', alert_id=alert.id) }}" class="ms-2">
-                        <button type="submit" class="btn btn-sm btn-outline-success" title="Marcar revisada"><i class="fas fa-check"></i></button>
-                    </form>
-                {% else %}
-                     <div><span class="text-danger">Error formato alerta.</span><br><pre>{{ alert }}</pre></div>
-                {% endif %}
-            </li>
-            {% endfor %}
-        </ul>
+                    <div class="col-md-5">
+                         <h5 class="mt-1">Matriz Confusión (Última Detección):</h5>
+                         {% if detection_cm_plot_url %} {# Usa la variable específica para esta detección #}
+                             <img src="{{ detection_cm_plot_url }}" alt="Matriz Confusión (Última Detección)" class="img-fluid border rounded mb-2" style="max-width: 100%;">
+                             {% if detection_cm_filename %}
+                             <a href="{{ url_for('download_plot', filename=detection_cm_filename) }}" class="btn btn-sm btn-outline-secondary">
+                                 <i class="fas fa-download"></i> Descargar Imagen CM (Detección)
+                             </a>
+                             {% endif %}
+                         {% else %}
+                             <p class="text-muted"><small>Matriz no disponible (requiere 'label' en datos).</small></p>
+                         {% endif %}
+                    </div>
+                 </div>
+
+                 {# Resumen Predicciones (Counts) #}
+                 {% if last_detection_results.summary %}
+                      <h5 class="mt-3">Resumen Predicciones (Esta Detección):</h5>
+                      <ul class="list-inline">
+                      {% for label, count in last_detection_results.summary.items() %}
+                          <li class="list-inline-item me-3">
+                              {{ label | default('N/A') }}: <span class="badge bg-secondary rounded-pill">{{ count if count is number else 'N/A' }}</span>
+                          </li>
+                      {% endfor %}
+                      </ul>
+                 {% endif %}
+            {% else %}
+                 <p class="text-muted mt-3">No hay métricas detalladas para esta detección.</p>
+            {% endif %}
+            <hr>
+
+            {# --- Vista Previa de Datos con Predicciones --- #}
+            <h5 class="mt-4">Vista Previa de Predicciones (Primeras Filas):</h5>
+            {% if detection_preview_data is not none and detection_preview_headers %}
+                <div class="table-responsive" style="max-height: 400px; overflow: auto;">
+                    <table class="table table-striped table-bordered table-sm table-hover">
+                        <thead class="table-dark sticky-top">
+                            <tr>
+                                {% for header in detection_preview_headers %}<th scope="col">{{ header }}</th>{% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in detection_preview_data %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <p><small><i>Mostrando hasta 10 filas.</i></small></p>
+            {% else %}<p class="text-muted mt-1">No hay datos de vista previa disponibles.</p>{% endif %}
+
+            {# Botón Descarga Reporte CSV #}
+            <div class="mt-4"><a href="{{ url_for('download_last_detection_csv') }}" class="btn btn-info"><i class="fas fa-download"></i> Descargar Reporte CSV Resumido</a></div>
+
+        {% else %}
+             <p class="text-muted mt-3">Aún no se ha ejecutado ninguna detección.</p>
+             <p class="text-muted"><small>Usa el formulario de arriba.</small></p>
+        {% endif %}
     </div>
-    {% else %}
-         <div class="card-body"><p class="text-muted mb-0">No hay alertas activas.</p></div>
-    {% endif %}
 </div>
 
-{# Historial de Detecciones #}
-<div class="card mb-3">
-    <div class="card-header"><i class="fas fa-history"></i> Historial de Detecciones</div>
+
+{# --- SECCIÓN: Evaluación General del Modelo (Sin Cambios) --- #}
+<div class="card mb-4 shadow-sm">
+     {# ... (Código de Evaluación General como estaba antes) ... #}
+     <div class="card-header bg-light"><i class="fas fa-chart-line"></i> Evaluación General del Modelo <small class="text-muted">(sobre conjunto de prueba interno)</small></div>
+     <div class="card-body">
+        {% if evaluation_report_data and evaluation_report_data is mapping %} {# Verifica que exista y sea un diccionario #}
+        <h6 class="mt-2">Reporte de Clasificación General:</h6>
+        <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+            <table class="table table-sm table-striped table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col">Clase/Métrica</th>
+                        <th scope="col">Precision</th>
+                        <th scope="col">Recall</th>
+                        <th scope="col">F1-Score</th>
+                        <th scope="col">Support</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {# Iterar sobre las claves principales (Benign, Attack, macro avg, weighted avg) #}
+                    {% for key, value in evaluation_report_data.items() %}
+                        {# Excluir la métrica 'accuracy' simple de esta tabla principal #}
+                        {% if key != 'accuracy' and value is mapping %}
+                            <tr>
+                                {# La primera celda es el nombre de la clase/métrica #}
+                                <th scope="row">{{ key | replace('_', ' ') | title }}</th>
+                                {# Acceder a cada métrica, formatear y mostrar N/A si no existe #}
+                                <td>{{ '%.4f'|format(value.get('precision', 0.0)|float) if value.get('precision') is not none else 'N/A' }}</td>
+                                <td>{{ '%.4f'|format(value.get('recall', 0.0)|float) if value.get('recall') is not none else 'N/A' }}</td>
+                                <td>{{ '%.4f'|format(value.get('f1-score', 0.0)|float) if value.get('f1-score') is not none else 'N/A' }}</td>
+                                <td>{{ '%.0f'|format(value.get('support', 0)|float) if value.get('support') is not none else 'N/A' }}</td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="text-muted mt-2"><small>Reporte de clasificación general no disponible.</small></p>
+    {% endif %}
+     </div>
+</div>
+
+
+{#--- SECCIÓN: Alertas Activas (¡ASEGÚRATE QUE ESTÉ PRESENTE!) ---#}
+<div class="card mb-4 shadow-sm">
+    <div class="card-header bg-warning"> {# Header llamativo #}
+        <i class="fas fa-bell"></i> Alertas Activas {% if active_alerts %}({{ active_alerts|length }}){% endif %}
+    </div>
+    <div class="card-body p-0"> {# Quitar padding para que la lista ocupe todo #}
+        {% if active_alerts %}
+            <ul class="list-group list-group-flush" style="max-height: 350px; overflow-y: auto;">
+                {% for alert in active_alerts %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {% if alert is mapping %} {# Verificar si es un diccionario válido #}
+                        <div>
+                            <small class="text-muted">{{ alert.timestamp | format_datetime if alert.timestamp else 'N/A' }}</small><br>
+                            <strong>{{ alert.get('alert_type', 'Alerta Desconocida') }}</strong>
+                            {% if alert.get('severity') %}
+                                <span class="badge rounded-pill ms-2
+                                    {% if alert.severity == 'Crítica' %}bg-danger
+                                    {% elif alert.severity == 'Alta' %}bg-warning text-dark
+                                    {% elif alert.severity == 'Media' %}bg-info text-dark
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ alert.severity }}
+                                </span>
+                            {% endif %}
+                             {% if alert.get('details') %}
+                                <br><small class="text-muted">{{ alert.details }}</small>
+                             {% endif %}
+                        </div>
+                        {# Formulario para marcar como revisada, apuntando a la ruta correcta #}
+                        <form method="POST" action="{{ url_for('mark_alert_reviewed', alert_id=alert.id) }}" class="ms-2">
+                             <input type="hidden" name="origin" value="detect"> {# Para saber a dónde redirigir #}
+                             <button type="submit" class="btn btn-sm btn-outline-success" title="Marcar como revisada">
+                                 <i class="fas fa-check"></i>
+                             </button>
+                        </form>
+                    {% else %}
+                         {# Mostrar si el formato de alerta es inesperado #}
+                         <div><span class="text-danger">Error formato alerta.</span><br><pre>{{ alert }}</pre></div>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="card-body text-center text-muted"><p class="mb-0">No hay alertas activas actualmente.</p></div>
+        {% endif %}
+    </div>
+</div>
+
+
+{#--- SECCIÓN: Historial de Detecciones (¡ASEGÚRATE QUE ESTÉ PRESENTE!) ---#}
+<div class="card mb-3 shadow-sm">
+    <div class="card-header bg-light"><i class="fas fa-history"></i> Historial de Detecciones Ejecutadas</div>
     <div class="card-body">
         {% if detection_history %}
             <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                 <table class="table table-striped table-hover table-sm">
-                    <thead class="table-light"><tr><th scope="col">Fecha</th><th scope="col">Fuente</th><th scope="col">Filas</th><th scope="col">Umbral</th><th scope="col">Accuracy</th></tr></thead>
+                    <thead class="table-light sticky-top">
+                        <tr>
+                            <th scope="col">Fecha</th>
+                            <th scope="col">Fuente</th>
+                            <th scope="col">Filas</th>
+                            <th scope="col">Umbral</th>
+                            <th scope="col">Accuracy</th>
+                        </tr>
+                    </thead>
                     <tbody>
-                        {% for entry in detection_history %}
+                        {% for entry in detection_history | reverse %} {# Mostrar más recientes primero #}
                             <tr>
-                                <td>{{ entry.ts | format_datetime if entry.ts else 'N/A' }}</td><td>{{ entry.src | default('N/A') }}</td><td>{{ entry.rows if entry.rows is not none else 'N/A' }}</td>
-                                <td>{% if entry.thr is not none %}{% if entry.thr is number %}{{ "%.2f" % entry.thr }}{% else %}{{ entry.thr }}{% endif %}{% else %}N/A{% endif %}</td>
-                                <td>{% if entry.metrics and entry.metrics.accuracy is not none %}{% if entry.metrics.accuracy is number or (entry.metrics.accuracy is string and entry.metrics.accuracy | float('error') != 'error') %}{{ "%.4f" % (entry.metrics.accuracy | float) }}{% else %}{{ entry.metrics.accuracy | default('N/A') }}{% endif %}{% else %}N/A{% endif %}</td>
+                                <td>{{ entry.ts | format_datetime if entry.ts else 'N/A' }}</td>
+                                <td>{{ entry.src | default('N/A') }}</td>
+                                <td>{{ entry.rows if entry.rows is not none else 'N/A' }}</td>
+                                <td>{% if entry.thr is not none %}{{ "%.2f"|format(entry.thr|float) }}{% else %}N/A{% endif %}</td>
+                                <td>{% if entry.metrics and entry.metrics.accuracy is not none %}{{ "%.4f"|format(entry.metrics.accuracy|float) }}{% else %}N/A{% endif %}</td>
                             </tr>
+                        {% else %}
+                            <tr><td colspan="5" class="text-center text-muted">No hay entradas en el historial.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-        {% else %}<p class="text-muted">No hay historial.</p>{% endif %}
+        {% else %}
+            <p class="text-muted">No hay historial de detecciones guardado.</p>
+        {% endif %}
     </div>
 </div>
 
 {% endblock %}
 
-{# Script JS (sin cambios) #}
+
+{# Script JS para mostrar indicador de carga (sin cambios) #}
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const df = document.getElementById('detection-form'); const li = document.getElementById('loading-indicator');
-        if (df && li) { df.addEventListener('submit', function(e) { const s = df.querySelector('#datasource').value; if (s) { li.style.display = 'block'; const b = df.querySelector('button[type="submit"]'); if(b){ b.disabled = true; b.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Detectando...'; }} else { e.preventDefault(); } }); } else { console.warn("Form/Indicator not found."); }
+        const detectForm = document.getElementById('detection-form');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        if (detectForm && loadingIndicator) {
+            detectForm.addEventListener('submit', function(event) {
+                const datasourceSelect = detectForm.querySelector('#datasource');
+                if (datasourceSelect && datasourceSelect.value) {
+                    loadingIndicator.style.display = 'block';
+                    const submitButton = detectForm.querySelector('button[type="submit"]');
+                    if(submitButton) {
+                        submitButton.disabled = true;
+                        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Detectando...';
+                    }
+                } else {
+                    // console.warn("Intento de envío sin fuente seleccionada."); // Opcional: Prevenir envío si es necesario
+                }
+            });
+        } else {
+            console.warn("Formulario 'detection-form' o indicador 'loading-indicator' no encontrado.");
+        }
     });
 </script>
 {% endblock %}

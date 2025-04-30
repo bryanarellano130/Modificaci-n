@@ -1,82 +1,150 @@
-{% extends 'base.html' %}
+{# templates/data_management.html #}
+{% extends "base.html" %}
 
 {% block title %}Gestión de Datos{% endblock %}
 
 {% block content %}
-<h1>📊 Gestión de Datos</h1>
+<h1 class="mt-4">📊 Gestión de Datos</h1>
 <p>Carga y preprocesa los datasets de tráfico de red.</p>
+<hr>
 
-<div class="data-actions">
-    <div class="action-card">
-        <h2>1. Cargar Datos (CSV)</h2>
-        <form method="POST" action="{{ url_for('manage_data') }}" enctype="multipart/form-data">
-            {# Es importante añadir un input oculto para saber qué acción realizar #}
-            <input type="hidden" name="action" value="upload">
-            <div class="form-group">
-                <label for="file">Selecciona un archivo CSV:</label>
-                <input type="file" id="file" name="file" accept=".csv" required>
-            </div>
-            <div class="form-group">
-                <button type="submit" class="button">Cargar Archivo</button>
-            </div>
-        </form>
-    </div>
+{# Mostrar mensajes flash #}
+{% include 'includes/_flash_messages.html' %} {# Ahora debería encontrar este archivo #}
 
-    {# Solo mostrar si hay datos cargados disponibles para procesar #}
-    <div class="action-card">
-        <h2>2. Preprocesar Datos</h2>
-        {# Verifica si DataManager tiene datos cargados listos para procesar #}
-        {# Nota: Necesitaríamos pasar una variable booleana desde Flask para saber esto, ej: 'can_preprocess' #}
-        {# Simplificación: Asumimos que si hay vista previa cargada, se puede procesar #}
-        {% if loaded_head_html and '<p>No hay datos' not in loaded_head_html %}
-            {% if not processed_head_html or '<p>No hay datos' in processed_head_html %}
-                <p>Archivo cargado listo para preprocesar.</p>
-                <form method="POST" action="{{ url_for('manage_data') }}">
-                     <input type="hidden" name="action" value="preprocess">
-                     <div class="form-group">
-                        <button type="submit" class="button button-secondary">Iniciar Preprocesamiento</button>
-                     </div>
+<div class="row">
+    {# --- Columna para Cargar Datos --- #}
+    <div class="col-md-6">
+        <div class="action-card card mb-4 shadow-sm">
+            <div class="card-header bg-primary text-white"><strong>1. Cargar Datos (CSV)</strong></div>
+            <div class="card-body">
+                 <form method="POST" action="{{ url_for('manage_data') }}" enctype="multipart/form-data">
+                    <input type="hidden" name="action" value="upload">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Selecciona archivo CSV:</label>
+                        <input class="form-control form-control-sm" type="file" id="file" name="file" accept=".csv" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-upload"></i> Cargar Archivo</button>
                 </form>
-            {% else %}
-                 <p>Los datos ya han sido preprocesados. Puedes ver una vista previa abajo.</p>
-                 <p><small>(Para preprocesar un nuevo archivo, primero cárgalo usando el formulario de arriba).</small></p>
-            {% endif %}
-        {% else %}
-             <p>Primero carga un archivo CSV usando el formulario anterior.</p>
-        {% endif %}
+            </div>
+        </div>
     </div>
 
+     {# --- Columna para Preprocesar --- #}
+    <div class="col-md-6">
+        <div class="action-card card mb-4 shadow-sm">
+             <div class="card-header"><strong>2. Preprocesar Datos</strong></div>
+             <div class="card-body">
+                {% if loaded_filename %}
+                    {% if processed_info %}
+                        <p class="text-success"><i class="fas fa-check-circle"></i> Datos de '{{ processed_info.source_file | default('archivo cargado') }}' ya preprocesados:</p>
+                        <ul>
+                            <li>Filas Procesadas: {{ processed_info.rows }}</li>
+                            <li>Columnas Finales: {{ processed_info.cols }}</li>
+                            <li>Fecha Procesado: {{ processed_info.ts | format_datetime }}</li>
+                        </ul>
+                         <p><small class="text-muted">(Carga un nuevo archivo para preprocesar otro).</small></p>
+                    {% else %}
+                        <p>Archivo <strong>'{{ loaded_filename }}'</strong> cargado. Haz clic para preprocesar.</p>
+                        <form method="POST" action="{{ url_for('manage_data') }}">
+                            <input type="hidden" name="action" value="preprocess">
+                            <button type="submit" class="btn btn-secondary">
+                                <i class="fas fa-cogs"></i> Iniciar Preprocesamiento
+                            </button>
+                        </form>
+                    {% endif %}
+                {% else %}
+                    <p class="text-muted">Carga un archivo CSV primero.</p>
+                {% endif %}
+             </div>
+        </div>
+    </div>
 </div>
 
 
-<h2>Vista Previa de Datos</h2>
+{# --- Sección de Vista Previa --- #}
+<h2 class="mt-4">Vista Previa de Datos</h2>
 
-<div class="data-preview">
-    <div class="preview-section">
-        <h3>Datos Cargados (Originales)</h3>
-        <div class="table-container">
-            {# | safe es necesario porque la variable contiene HTML generado por pandas #}
-            {{ loaded_head_html | safe if loaded_head_html else "<p>Aún no se han cargado datos.</p>" }}
-        </div>
-         {# Aquí podrías añadir un botón/enlace para ver estadísticas descriptivas si lo implementas #}
-         {# Ejemplo: <a href="{{ url_for('descriptive_stats', source='loaded') }}">Ver Estadísticas</a> #}
+<div class="row">
+    {# Columna para Datos Originales #}
+    <div class="col-lg-6 mb-4">
+         <div class="card shadow-sm">
+            <div class="card-header bg-light"><strong>Datos Cargados (Originales)</strong> - <small>{{ loaded_filename | default('Ninguno')}}</small></div>
+            <div class="card-body">
+                {# --- Contenedor con Scroll y Tabla Jinja2 --- #}
+                <div class="table-responsive mb-3" style="max-height: 400px; max-width: 100%; overflow: auto; border: 1px solid #dee2e6;">
+                    {# Usa las variables pasadas desde app.py #}
+                    {% if loaded_preview_data is not none and loaded_preview_headers %}
+                        <table class="table table-sm table-striped table-hover">
+                            <thead class="table-light sticky-top"> {# Cabecera fija #}
+                                <tr>
+                                    {% for header in loaded_preview_headers %}
+                                        <th scope="col">{{ header }}</th> {# Encabezados limpios #}
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in loaded_preview_data %}
+                                <tr>
+                                    {% for cell in row %}
+                                        <td>{{ cell }}</td> {# Datos limpios #}
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p class='text-muted p-2'>Aún no se han cargado datos.</p>
+                    {% endif %}
+                </div>
+                 <p class="mt-1"><small><i>Mostrando hasta 10 filas. Usa scroll si es necesario.</i></small></p>
+                 {# --- FIN: Contenedor con Scroll --- #}
+            </div>
+         </div>
     </div>
 
-    <div class="preview-section">
-        <h3>Datos Procesados</h3>
-         <div class="table-container">
-            {# | safe es necesario porque la variable contiene HTML generado por pandas #}
-            {{ processed_head_html | safe if processed_head_html else "<p>Los datos aún no han sido preprocesados o no se cargó ningún archivo.</p>" }}
-        </div>
-        {# Aquí podrías añadir un botón/enlace para ver estadísticas descriptivas si lo implementas #}
-        {# Ejemplo: <a href="{{ url_for('descriptive_stats', source='processed') }}">Ver Estadísticas</a> #}
+     {# Columna para Datos Procesados #}
+     <div class="col-lg-6 mb-4">
+         <div class="card shadow-sm">
+             <div class="card-header bg-light"><strong>Datos Procesados</strong></div>
+             <div class="card-body">
+                 {# --- Contenedor con Scroll y Tabla Jinja2 --- #}
+                 <div class="table-responsive" style="max-height: 400px; max-width: 100%; overflow: auto; border: 1px solid #dee2e6;">
+                     {# Usa las variables pasadas desde app.py #}
+                     {% if processed_preview_data is not none and processed_preview_headers %}
+                        <table class="table table-sm table-striped table-hover">
+                            <thead class="table-light sticky-top"> {# Cabecera fija #}
+                                <tr>
+                                    {% for header in processed_preview_headers %}
+                                        <th scope="col">{{ header }}</th> {# Encabezados limpios #}
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in processed_preview_data %}
+                                <tr>
+                                    {% for cell in row %}
+                                        <td>{{ cell }}</td> {# Datos limpios #}
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                     {% else %}
+                         <p class='text-muted p-2'>Los datos aún no han sido preprocesados.</p>
+                     {% endif %}
+                 </div>
+                  <p class="mt-1"><small><i>Mostrando hasta 10 filas. Usa scroll si es necesario.</i></small></p>
+                  {# --- FIN: Contenedor con Scroll --- #}
+             </div>
+         </div>
     </div>
 </div>
 
 {% endblock %}
 
+{# Scripts JS adicionales si los necesitas #}
 {% block extra_js %}
 <script>
-    console.log("Data Management JS loaded");
+    console.log("Página Data Management cargada.");
 </script>
 {% endblock %}
