@@ -31,7 +31,6 @@ from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 
-
 # Importa tus clases manager (Asegúrate que estos archivos existan y sean correctos)
 try:
     from data_manager import DataManager
