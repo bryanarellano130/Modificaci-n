@@ -1,118 +1,332 @@
-{# templates/admin.html #}
-{% extends "base.html" %}
-
-{% block title %}Administración{% endblock %}
-
-{% block content %}
-<h1 class="mt-4">⚙️ Administración del Sistema</h1>
-<p>Configura parámetros globales, gestiona usuarios y realiza tareas de mantenimiento.</p>
-<hr>
-
-{# Mostrar mensajes flash si los hay #}
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ category or 'info' }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
-
-{# --- Sección de Configuración --- #}
-<div class="card mb-4">
-    <div class="card-header">Configuración General</div>
-    <div class="card-body">
+{# templates/admin.html #} {% extends "base.html" %} {% block title
+    %}Administración{% endblock %} {% block content %}
+    <h1 class="mt-4">⚙️ Administración del Sistema</h1>
+    <p>
+      Configura parámetros globales, gestiona usuarios y realiza tareas de
+      mantenimiento.
+    </p>
+    <hr />
+    
+    {# Mostrar mensajes flash si los hay #} {% with messages =
+    get_flashed_messages(with_categories=true) %} {% if messages %} {% for
+    category, message in messages %}
+    <div
+      class="alert alert-{{ category or 'info' }} alert-dismissible fade show"
+      role="alert"
+    >
+      {{ message }}
+      <button
+        type="button"
+        class="btn-close"
+        data-bs-dismiss="alert"
+        aria-label="Close"
+      ></button>
+    </div>
+    {% endfor %} {% endif %} {% endwith %}
+    
+    {# --- Sección de Configuración --- #}
+    <div class="card mb-4">
+      <div class="card-header">Configuración General</div>
+      <div class="card-body">
         {# Usamos un formulario que apunta a la ruta de acciones #}
         <form method="POST" action="{{ url_for('admin_actions') }}">
-            {# Campo oculto para indicar la acción específica #}
-            <input type="hidden" name="action" value="update_threshold">
-
-            <div class="mb-3">
-                <label for="glm_threshold_admin" class="form-label">Umbral de Decisión Modelo GLM:
-                    <span id="thresholdValueAdmin" class="badge bg-secondary">{{ '%.2f'|format(glm_threshold) }}</span>
-                </label>
-                <input type="range" class="form-range" id="glm_threshold_admin" name="glm_threshold_admin"
-                       min="0.1" max="0.9" step="0.05" value="{{ glm_threshold }}"
-                       oninput="document.getElementById('thresholdValueAdmin').textContent = parseFloat(this.value).toFixed(2);">
-                 <small class="form-text text-muted">Ajusta la sensibilidad del modelo de detección.</small>
-            </div>
-            <button type="submit" class="btn btn-primary btn-sm">Actualizar Umbral</button>
+          {# Campo oculto para indicar la acción específica #}
+          <input type="hidden" name="action" value="update_threshold" />
+          <div class="mb-3">
+            <label for="glm_threshold_admin" class="form-label"
+              >Umbral de Decisión Modelo GLM:
+              <span id="thresholdValueAdmin" class="badge bg-secondary"
+                >{{ '%.2f'|format(glm_threshold) }}</span
+              >
+            </label>
+            <input
+              type="range"
+              class="form-range"
+              id="glm_threshold_admin"
+              name="glm_threshold_admin"
+              min="0.1"
+              max="0.9"
+              step="0.05"
+              value="{{ glm_threshold }}"
+              oninput="document.getElementById('thresholdValueAdmin').textContent = parseFloat(this.value).toFixed(2);"
+            />
+            <small class="form-text text-muted"
+              >Ajusta la sensibilidad del modelo de detección.</small
+            >
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm">
+            Actualizar Umbral
+          </button>
         </form>
-
-        <hr>
-
+        <hr />
         <form method="POST" action="{{ url_for('admin_actions') }}">
-            <input type="hidden" name="action" value="update_alert_config">
-             <div class="mb-3">
-                <label for="alert_severity_threshold_admin" class="form-label">Umbral Mínimo de Severidad para Alertas:</label>
-                <select class="form-select form-select-sm" id="alert_severity_threshold_admin" name="alert_severity_threshold_admin">
-                    {% for level in alert_severity_levels %}
-                        <option value="{{ level }}" {% if level == alert_severity_threshold %}selected{% endif %}>{{ level }}</option>
-                    {% endfor %}
-                </select>
-             </div>
-             <div class="form-check mb-3">
-                <input class="form-check-input" type="checkbox" id="notify_email_admin" name="notify_email_admin" value="on" {% if notify_email %}checked{% endif %}>
-                <label class="form-check-label" for="notify_email_admin">
-                    Notificar por Email (Simulado)
-                </label>
-            </div>
-             <button type="submit" class="btn btn-primary btn-sm">Actualizar Config. Alertas</button>
+          <input type="hidden" name="action" value="update_alert_config" />
+          <div class="mb-3">
+            <label for="alert_severity_threshold_admin" class="form-label"
+              >Umbral Mínimo de Severidad para Alertas:</label
+            >
+            <select
+              class="form-select form-select-sm"
+              id="alert_severity_threshold_admin"
+              name="alert_severity_threshold_admin"
+            >
+              {% for level in alert_severity_levels %}
+              <option value="{{ level }}" {% if level == alert_severity_threshold %}selected{% endif %}>
+                {{ level }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-check mb-3">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="notify_email_admin"
+              name="notify_email_admin"
+              value="on"
+              {% if notify_email %}checked{% endif %}
+            />
+            <label class="form-check-label" for="notify_email_admin">
+              Notificar por Email (Simulado)
+            </label>
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm">
+            Actualizar Config. Alertas
+          </button>
         </form>
+      </div>
     </div>
-</div>
-
-{# --- Sección de Acciones --- #}
-<div class="card mb-4">
-    <div class="card-header">Acciones de Mantenimiento</div>
-    <div class="card-body">
-        {# Botón para Reentrenar #}
-        <form method="POST" action="{{ url_for('admin_actions') }}" class="d-inline me-2">
-             <input type="hidden" name="action" value="retrain">
-             <button type="submit" class="btn btn-warning" onclick="return confirm('¿Estás seguro de que deseas reentrenar el modelo? Esto puede tardar y usará los últimos datos preprocesados.');">
-                 <i class="fas fa-sync-alt"></i> Reentrenar Modelo
-             </button>
-             <small class="form-text text-muted d-block">Usa los últimos datos preprocesados para reentrenar y guardar el modelo.</small>
+    
+    {# --- Sección de Acciones de Entrenamiento y Mantenimiento --- #}
+    <div class="card mb-4">
+      <div class="card-header">Acciones de Entrenamiento y Mantenimiento</div>
+      <div class="card-body">
+        {# Botón para Reentrenar COMPLETO #}
+        <form
+          method="POST"
+          action="{{ url_for('admin_actions') }}"
+          class="mb-3"
+        >
+          <input type="hidden" name="action" value="retrain" />
+          <button
+            type="submit"
+            class="btn btn-warning"
+            onclick="return confirm('¿Estás seguro de que deseas reentrenar el modelo DESDE CERO? Esto usará los últimos datos preprocesados y reemplazará el modelo activo.');"
+          >
+            <i class="fas fa-sync-alt"></i> Reentrenar Modelo (Completo)
+          </button>
+          <small class="form-text text-muted d-block"
+            >Usa los últimos datos preprocesados para reentrenar y guardar el modelo
+            activo.</small
+          >
         </form>
-
-        <hr>
-
+    
+        {# --- NUEVA SECCIÓN PARA AÑADIR DATOS Y REENTRENAR (TR-17) --- #}
+        <hr />
+        <h5>Añadir Datos y Reentrenar</h5>
+        <form
+          method="POST"
+          action="{{ url_for('admin_actions') }}" {# Apunta a la misma ruta de admin #}
+          enctype="multipart/form-data" {# Necesario para subir archivos #}
+          class="mb-3"
+        >
+          <p>
+            Carga un nuevo archivo CSV con datos adicionales (debe tener el mismo
+            formato que los originales). Estos datos se añadirán al conjunto
+            existente y el modelo se reentrenará con todos los datos combinados.
+          </p>
+          <div class="form-group mb-3">
+            <label for="new_data_file" class="form-label"
+              >Selecciona archivo CSV con datos adicionales:</label
+            >
+            <input
+              type="file"
+              class="form-control"
+              id="new_data_file"
+              name="new_data_file"
+              accept=".csv"
+              required
+            />
+          </div>
+          {# Usar un valor único para 'action' #}
+          <button
+            type="submit"
+            name="action"
+            value="add_data_and_retrain"
+            class="btn btn-info"
+          >
+            <i class="fas fa-plus-circle"></i> Añadir Datos y Reentrenar
+          </button>
+        </form>
+    
+        <hr />
+    
         {# Botón para Borrar Alertas #}
         <form method="POST" action="{{ url_for('admin_actions') }}" class="d-inline">
-             <input type="hidden" name="action" value="delete_all_alerts">
-             <button type="submit" class="btn btn-danger" onclick="return confirm('¡PRECAUCIÓN! ¿Estás seguro de que deseas eliminar TODAS las alertas de la base de datos? Esta acción no se puede deshacer.');">
-                 <i class="fas fa-trash-alt"></i> Eliminar Todas las Alertas
-             </button>
-             <small class="form-text text-muted d-block">Borra permanentemente todo el historial de alertas.</small>
+          <input type="hidden" name="action" value="delete_all_alerts" />
+          <button
+            type="submit"
+            class="btn btn-danger"
+            onclick="return confirm('¡PRECAUCIÓN! ¿Estás seguro de que deseas eliminar TODAS las alertas de la base de datos? Esta acción no se puede deshacer.');"
+          >
+            <i class="fas fa-trash-alt"></i> Eliminar Todas las Alertas
+          </button>
+          <small class="form-text text-muted d-block"
+            >Borra permanentemente todo el historial de alertas.</small
+          >
         </form>
+      </div>
     </div>
-</div>
-
-{# --- Sección Gestión de Usuarios (Enlaces) --- #}
-<div class="card mb-4">
-    <div class="card-header">Gestión de Usuarios</div>
-    <div class="card-body">
-        <a href="{{ url_for('list_users') }}" class="btn btn-secondary"><i class="fas fa-users"></i> Ver/Editar Usuarios</a>
-        <a href="{{ url_for('create_user') }}" class="btn btn-success"><i class="fas fa-user-plus"></i> Crear Nuevo Usuario</a>
+    
+    {# --- NUEVA SECCIÓN PARA GESTIONAR CONFIGURACIONES GUARDADAS (TR-18) --- #}
+    <div class="card mt-4">
+      <div class="card-header">Gestión de Configuraciones de Modelo Guardadas</div>
+      <div class="card-body">
+        {# Formulario para GUARDAR el modelo activo #}
+        <form method="POST" action="{{ url_for('admin_actions') }}" class="mb-3">
+          <div class="row g-2 align-items-end">
+            <div class="col-md">
+              <label for="save_name" class="form-label"
+                >Guardar Configuración Activa Como:</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="save_name"
+                name="save_name"
+                placeholder="Ej: Modelo_Optimizado_Mayo_v2"
+                required
+              />
+              <small>Usa solo letras, números, guiones bajos o guiones.</small>
+            </div>
+            <div class="col-md-auto">
+              <button
+                type="submit"
+                name="action"
+                value="save_model"
+                class="btn btn-success w-100"
+              >
+                <i class="fas fa-save"></i> Guardar
+              </button>
+            </div>
+          </div>
+        </form>
+    
+        {# Formulario para CARGAR un modelo guardado como activo #}
+        <form method="POST" action="{{ url_for('admin_actions') }}" class="mb-3">
+          <div class="row g-2 align-items-end">
+            <div class="col-md">
+              <label for="load_model_select" class="form-label"
+                >Cargar Configuración Guardada (Será el modelo activo):</label
+              >
+              <select
+                class="form-select"
+                id="load_model_select"
+                name="model_filename_to_load"
+                required
+              >
+                <option value="" selected disabled>-- Selecciona un modelo --</option>
+                {% if saved_models_list %} {% for model_file in saved_models_list
+                %}
+                <option value="{{ model_file }}">{{ model_file }}</option>
+                {% endfor %} {% else %}
+                <option value="" disabled>No hay modelos guardados</option>
+                {% endif %}
+              </select>
+            </div>
+            <div class="col-md-auto">
+              <button
+                type="submit"
+                name="action"
+                value="load_model"
+                class="btn btn-warning w-100"
+                {% if not saved_models_list %}disabled{% endif %} {# Deshabilitar si no hay modelos #}
+              >
+                <i class="fas fa-upload"></i> Cargar como Activo
+              </button>
+            </div>
+          </div>
+        </form>
+    
+        {# Formulario para ELIMINAR un modelo guardado #}
+        <form
+          method="POST"
+          action="{{ url_for('admin_actions') }}"
+          onsubmit="return confirm('¿Estás seguro de que deseas eliminar este modelo guardado? Esta acción no se puede deshacer.');"
+        >
+          <div class="row g-2 align-items-end">
+            <div class="col-md">
+              <label for="delete_model_select" class="form-label"
+                >Eliminar Configuración Guardada:</label
+              >
+              <select
+                class="form-select"
+                id="delete_model_select"
+                name="model_filename_to_delete"
+                required
+              >
+                <option value="" selected disabled>
+                  -- Selecciona un modelo a eliminar --
+                </option>
+                 {% if saved_models_list %}
+                   {% for model_file in saved_models_list %}
+                     <option value="{{ model_file }}">{{ model_file }}</option>
+                   {% endfor %}
+                 {% else %}
+                   <option value="" disabled>No hay modelos guardados</option>
+                 {% endif %}
+              </select>
+            </div>
+            <div class="col-md-auto">
+              <button
+                type="submit"
+                name="action"
+                value="delete_model"
+                class="btn btn-danger w-100"
+                {% if not saved_models_list %}disabled{% endif %} {# Deshabilitar si no hay modelos #}
+              >
+                <i class="fas fa-trash-alt"></i> Eliminar
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
-</div>
-
-
-{# --- Sección de Logs (Placeholder) --- #}
-<div class="card">
-    <div class="card-header">Logs del Sistema (Ejemplo)</div>
-    <div class="card-body" style="max-height: 400px; overflow-y: auto; background-color: #212529; color: #f8f9fa; font-family: monospace; font-size: 0.85em;">
-        {# Iterar sobre los logs pasados desde Flask #}
-        {% if system_logs %}
-            {% for log_line in system_logs %}
-                <div>{{ log_line }}</div>
-            {% endfor %}
-        {% else %}
-            <p>No hay logs para mostrar.</p>
+    
+    {# --- Sección Gestión de Usuarios (Enlaces) --- #}
+    <div class="card mb-4">
+      <div class="card-header">Gestión de Usuarios</div>
+      <div class="card-body">
+        <a href="{{ url_for('list_users') }}" class="btn btn-secondary"
+          ><i class="fas fa-users"></i> Ver/Editar Usuarios</a
+        >
+        <a href="{{ url_for('create_user') }}" class="btn btn-success"
+          ><i class="fas fa-user-plus"></i> Crear Nuevo Usuario</a
+        >
+      </div>
+    </div>
+    
+    {# --- Sección de Logs (Placeholder) --- #}
+    <div class="card">
+      <div class="card-header">Logs del Sistema (Ejemplo)</div>
+      <div
+        class="card-body"
+        style="
+          max-height: 400px;
+          overflow-y: auto;
+          background-color: #212529;
+          color: #f8f9fa;
+          font-family: monospace;
+          font-size: 0.85em;
+        "
+      >
+        {# Iterar sobre los logs pasados desde Flask #} {% if system_logs %} {% for
+        log_line in system_logs %}
+        <div>{{ log_line }}</div>
+        {% endfor %} {% else %}
+        <p>No hay logs para mostrar.</p>
         {% endif %}
+      </div>
     </div>
-</div>
-
-{% endblock %}
+    
+    {% endblock %}

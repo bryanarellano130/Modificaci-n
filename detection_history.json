@@ -1535,5 +1535,275 @@
             "Benign": 591902,
             "Unknown": 0
         }
+    },
+    {
+        "ts": "2025-05-05T02:54:11",
+        "src": "Datos Preprocesados Cargados",
+        "rows": 582173,
+        "thr": 0.7,
+        "metrics": {
+            "accuracy": 0.9899617467659957,
+            "confusion_matrix": [
+                [
+                    569332,
+                    1546
+                ],
+                [
+                    4298,
+                    6997
+                ]
+            ],
+            "report": {
+                "Benign": {
+                    "precision": 0.9925073653748933,
+                    "recall": 0.9972918907367249,
+                    "f1-score": 0.9948938757964121,
+                    "support": 570878.0
+                },
+                "Attack": {
+                    "precision": 0.8190331265363455,
+                    "recall": 0.6194776449756529,
+                    "f1-score": 0.705413852202843,
+                    "support": 11295.0
+                },
+                "accuracy": 0.9899617467659957,
+                "macro avg": {
+                    "precision": 0.9057702459556194,
+                    "recall": 0.8083847678561888,
+                    "f1-score": 0.8501538639996276,
+                    "support": 582173.0
+                },
+                "weighted avg": {
+                    "precision": 0.9891417137083244,
+                    "recall": 0.9899617467659957,
+                    "f1-score": 0.9892775437671194,
+                    "support": 582173.0
+                }
+            },
+            "classes": [
+                "Benign",
+                "Attack"
+            ]
+        },
+        "summary": {
+            "Benign": 573630,
+            "Attack": 8543
+        }
+    },
+    {
+        "ts": "2025-05-05T02:55:22",
+        "src": "Datos Preprocesados Cargados",
+        "rows": 610785,
+        "thr": 0.7,
+        "metrics": {
+            "accuracy": 0.6804505677120427,
+            "confusion_matrix": [
+                [
+                    415546,
+                    1480
+                ],
+                [
+                    193696,
+                    63
+                ]
+            ],
+            "report": {
+                "Benign": {
+                    "precision": 0.6820705072861031,
+                    "recall": 0.996451060605334,
+                    "f1-score": 0.809819657243527,
+                    "support": 417026.0
+                },
+                "Attack": {
+                    "precision": 0.04082955281918341,
+                    "recall": 0.0003251461867577764,
+                    "f1-score": 0.0006451546835157859,
+                    "support": 193759.0
+                },
+                "accuracy": 0.6804505677120427,
+                "macro avg": {
+                    "precision": 0.36145003005264326,
+                    "recall": 0.4983881033960459,
+                    "f1-score": 0.4052324059635214,
+                    "support": 610785.0
+                },
+                "weighted avg": {
+                    "precision": 0.4786499810836654,
+                    "recall": 0.6804505677120427,
+                    "f1-score": 0.5531256610885376,
+                    "support": 610785.0
+                }
+            },
+            "classes": [
+                "Benign",
+                "Attack"
+            ]
+        },
+        "summary": {
+            "Benign": 609242,
+            "Attack": 1543
+        }
+    },
+    {
+        "ts": "2025-05-05T02:56:23",
+        "src": "Datos Preprocesados Cargados",
+        "rows": 610785,
+        "thr": 0.7,
+        "metrics": {
+            "accuracy": 0.9797555604672675,
+            "confusion_matrix": [
+                [
+                    408452,
+                    8574
+                ],
+                [
+                    3791,
+                    189968
+                ]
+            ],
+            "report": {
+                "Benign": {
+                    "precision": 0.990803967562821,
+                    "recall": 0.9794401308311712,
+                    "f1-score": 0.9850892774238517,
+                    "support": 417026.0
+                },
+                "Attack": {
+                    "precision": 0.9568151826817499,
+                    "recall": 0.9804344572381154,
+                    "f1-score": 0.9684808348691438,
+                    "support": 193759.0
+                },
+                "accuracy": 0.9797555604672675,
+                "macro avg": {
+                    "precision": 0.9738095751222855,
+                    "recall": 0.9799372940346434,
+                    "f1-score": 0.9767850561464977,
+                    "support": 610785.0
+                },
+                "weighted avg": {
+                    "precision": 0.9800217234511099,
+                    "recall": 0.9797555604672675,
+                    "f1-score": 0.9798205900445648,
+                    "support": 610785.0
+                }
+            },
+            "classes": [
+                "Benign",
+                "Attack"
+            ]
+        },
+        "summary": {
+            "Benign": 412243,
+            "Attack": 198542
+        }
+    },
+    {
+        "ts": "2025-05-05T02:57:19",
+        "src": "Datos Preprocesados Cargados",
+        "rows": 610785,
+        "thr": 0.7,
+        "metrics": {
+            "accuracy": 0.9797555604672675,
+            "confusion_matrix": [
+                [
+                    408452,
+                    8574
+                ],
+                [
+                    3791,
+                    189968
+                ]
+            ],
+            "report": {
+                "Benign": {
+                    "precision": 0.990803967562821,
+                    "recall": 0.9794401308311712,
+                    "f1-score": 0.9850892774238517,
+                    "support": 417026.0
+                },
+                "Attack": {
+                    "precision": 0.9568151826817499,
+                    "recall": 0.9804344572381154,
+                    "f1-score": 0.9684808348691438,
+                    "support": 193759.0
+                },
+                "accuracy": 0.9797555604672675,
+                "macro avg": {
+                    "precision": 0.9738095751222855,
+                    "recall": 0.9799372940346434,
+                    "f1-score": 0.9767850561464977,
+                    "support": 610785.0
+                },
+                "weighted avg": {
+                    "precision": 0.9800217234511099,
+                    "recall": 0.9797555604672675,
+                    "f1-score": 0.9798205900445648,
+                    "support": 610785.0
+                }
+            },
+            "classes": [
+                "Benign",
+                "Attack"
+            ]
+        },
+        "summary": {
+            "Benign": 412243,
+            "Attack": 198542
+        }
+    },
+    {
+        "ts": "2025-05-05T02:58:18",
+        "src": "Datos Preprocesados Cargados",
+        "rows": 610785,
+        "thr": 0.7,
+        "metrics": {
+            "accuracy": 0.6804505677120427,
+            "confusion_matrix": [
+                [
+                    415546,
+                    1480
+                ],
+                [
+                    193696,
+                    63
+                ]
+            ],
+            "report": {
+                "Benign": {
+                    "precision": 0.6820705072861031,
+                    "recall": 0.996451060605334,
+                    "f1-score": 0.809819657243527,
+                    "support": 417026.0
+                },
+                "Attack": {
+                    "precision": 0.04082955281918341,
+                    "recall": 0.0003251461867577764,
+                    "f1-score": 0.0006451546835157859,
+                    "support": 193759.0
+                },
+                "accuracy": 0.6804505677120427,
+                "macro avg": {
+                    "precision": 0.36145003005264326,
+                    "recall": 0.4983881033960459,
+                    "f1-score": 0.4052324059635214,
+                    "support": 610785.0
+                },
+                "weighted avg": {
+                    "precision": 0.4786499810836654,
+                    "recall": 0.6804505677120427,
+                    "f1-score": 0.5531256610885376,
+                    "support": 610785.0
+                }
+            },
+            "classes": [
+                "Benign",
+                "Attack"
+            ]
+        },
+        "summary": {
+            "Benign": 609242,
+            "Attack": 1543
+        }
     }
 ]
